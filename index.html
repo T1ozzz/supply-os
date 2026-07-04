@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Supply OS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --surface3: #222222;
+    --border: #2a2a2a;
+    --border2: #333333;
+    --accent: #e8c547;
+    --accent-dim: rgba(232,197,71,0.12);
+    --accent-dim2: rgba(232,197,71,0.06);
+    --text: #f0f0f0;
+    --text2: #888888;
+    --text3: #555555;
+    --red: #e05252;
+    --red-dim: rgba(224,82,82,0.12);
+    --green: #52c07a;
+    --green-dim: rgba(82,192,122,0.12);
+    --blue: #5298e0;
+    --blue-dim: rgba(82,152,224,0.12);
+    --orange: #e0a052;
+    --orange-dim: rgba(224,160,82,0.12);
+    --purple: #9b72e0;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .back-btn {
+    width: 34px; height: 34px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .topbar-title { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+  .topbar-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+
+  /* ── LOGO ── */
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .content { flex: 1; padding: 20px; overflow-y: auto; }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+    margin-top: 24px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ── TRUCK GRID ── */
+  .truck-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .truck-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    user-select: none;
+  }
+  .truck-card:hover { border-color: var(--accent); background: var(--surface2); }
+  .truck-card.dragging { opacity: 0.4; border-style: dashed; }
+  .truck-card.drag-over { border-color: var(--accent); background: var(--accent-dim); }
+
+  .truck-priority {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+  .truck-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: -0.2px;
+  }
+  .truck-meta { font-size: 11px; color: var(--text2); }
+
+  .truck-badges {
+    display: flex;
+    gap: 5px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+  .badge-yellow { background: var(--accent-dim); color: var(--accent); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-gray { background: var(--surface3); color: var(--text2); }
+
+  /* ── ADD CARD ── */
+  .add-card {
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text3);
+    font-size: 13px;
+    min-height: 80px;
+  }
+  .add-card:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    color: var(--text2);
+    transition: all 0.15s;
+  }
+  .tab.active {
+    background: var(--surface3);
+    color: var(--text);
+  }
+
+  /* ── ORDERS LIST ── */
+  .orders-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .order-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .order-card:hover { border-color: var(--border2); background: var(--surface2); }
+
+  .order-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 10px;
+  }
+  .order-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .order-name { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; margin-top: 2px; }
+
+  .status-pill {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  .order-items { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+
+  .order-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .order-days {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .order-days.warn { color: var(--red); }
+  .order-supplier { font-size: 11px; color: var(--text2); }
+
+  /* STATUS COLORS */
+  .s-order { background: var(--surface3); color: var(--text2); }
+  .s-pricing { background: var(--blue-dim); color: var(--blue); }
+  .s-compare { background: var(--purple); color: #fff; background: rgba(155,114,224,0.15); color: var(--purple); }
+  .s-approval { background: var(--orange-dim); color: var(--orange); }
+  .s-confirmed { background: var(--accent-dim); color: var(--accent); }
+  .s-po { background: rgba(155,114,224,0.15); color: var(--purple); }
+  .s-transit { background: var(--blue-dim); color: var(--blue); }
+  .s-delivered { background: var(--green-dim); color: var(--green); }
+  .s-closed { background: var(--surface3); color: var(--text3); }
+
+  /* ── ORDER DETAIL ── */
+  .detail-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .detail-section-header {
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .detail-section-body { padding: 14px 16px; }
+
+  /* PIPELINE */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .pipeline-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    position: relative;
+  }
+  .pipeline-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 32px;
+    bottom: -8px;
+    width: 1px;
+    background: var(--border);
+  }
+  .pipe-dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border2);
+    background: var(--surface2);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+  }
+  .pipe-dot.done { border-color: var(--green); background: var(--green-dim); }
+  .pipe-dot.done::after { content: '✓'; font-size: 10px; color: var(--green); }
+  .pipe-dot.active { border-color: var(--accent); background: var(--accent-dim); }
+  .pipe-dot.active::after { content: '●'; font-size: 8px; color: var(--accent); }
+  .pipe-dot.waiting::after { content: '○'; font-size: 8px; color: var(--text3); }
+  .pipe-label { font-size: 13px; font-weight: 500; line-height: 1.3; padding-top: 2px; }
+  .pipe-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* ITEMS TABLE */
+  .items-table { width: 100%; border-collapse: collapse; }
+  .items-table th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 0 0 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .items-table td {
+    padding: 10px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .items-table tr:last-child td { border-bottom: none; }
+  .items-table .qty {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* SUPPLIERS CHECK */
+  .supplier-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .supplier-row:last-child { border-bottom: none; }
+  .supplier-info { display: flex; flex-direction: column; gap: 2px; }
+  .supplier-name { font-size: 13px; font-weight: 500; }
+  .supplier-country { font-size: 11px; color: var(--text3); }
+  .supplier-sent {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .sent-yes { background: var(--green-dim); color: var(--green); }
+  .sent-no { background: var(--surface3); color: var(--text3); }
+
+  /* NOTES */
+  .notes-area {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 12px;
+    resize: none;
+    min-height: 80px;
+    outline: none;
+    line-height: 1.6;
+  }
+  .notes-area:focus { border-color: var(--accent); }
+
+  /* FILES */
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .file-item:last-child { border-bottom: none; }
+  .file-icon {
+    width: 34px; height: 34px;
+    background: var(--blue-dim);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    color: var(--blue);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+  }
+  .file-icon.xl { background: var(--green-dim); color: var(--green); }
+  .file-name { font-size: 13px; font-weight: 500; }
+  .file-size { font-size: 11px; color: var(--text3); }
+
+  /* DISCOUNTS */
+  .discount-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .discount-row:last-child { border-bottom: none; }
+  .discount-item { font-size: 13px; font-weight: 500; }
+  .discount-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .discount-amounts { text-align: right; }
+  .discount-saved { font-size: 13px; font-weight: 600; color: var(--green); }
+  .discount-mine { font-size: 11px; color: var(--accent); margin-top: 2px; }
+
+  .summary-card {
+    background: var(--accent-dim2);
+    border: 1px solid rgba(232,197,71,0.2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .summary-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .summary-value { font-size: 18px; font-weight: 700; color: var(--accent); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius) var(--radius) 0 0;
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: -0.3px;
+  }
+
+  /* FORM */
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--text3); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .btn {
+    padding: 11px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #f0ce55; }
+  .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-row .btn { flex: 1; }
+
+  /* PRIORITY BADGE */
+  .priority-high { color: var(--red); }
+  .priority-mid { color: var(--orange); }
+  .priority-low { color: var(--text3); }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text3);
+    font-size: 13px;
+  }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.3; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* RESPONSIVE */
+  @media (min-width: 600px) {
+    .content { padding: 24px 28px; }
+    .truck-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .modal { border-radius: var(--radius); margin-bottom: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     SCREEN 1 — TRUCKS (MAIN)
+═══════════════════════════════════ -->
+<div class="screen active" id="screen-main">
+  <div class="topbar">
+    <div class="logo">Supply OS</div>
+    <button class="btn btn-ghost" style="font-size:12px;padding:7px 14px;" onclick="showModal('modal-add-truck')">+ Truck</button>
+  </div>
+  <div class="content">
+
+    <div class="section-label">Active Trucks</div>
+    <div class="truck-grid" id="active-trucks">
+      <!-- Trucks injected by JS -->
+    </div>
+
+    <div class="section-label">Archive</div>
+    <div class="truck-grid" id="archive-trucks">
+      <!-- Archive trucks -->
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCREEN 2 — TRUCK DETAIL
+═══════════════════════════════════ -->
+<div class="screen" id="screen-truck">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" onclick="goBack('screen-main')">←</button>
+      <div>
+        <div class="topbar-title" id="truck-screen-name">—</div>
+        <div class="topbar-sub" id="truck-screen-sub">—</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="font-size:12px;padding:7px 14px;" onclick="showModal('modal-add-order')">+ Order</button>
+  </div>
+  <div class="content">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'tab-orders')">Orders</div>
+      <div class="tab" onclick="switchTab(this,'tab-discounts')">Discounts</div>
+      <div class="tab" onclick="switchTab(this,'tab-calendar')">Movement</div>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div id="tab-orders">
+      <div class="orders-list" id="orders-list">
+        <!-- Orders injected -->
+      </div>
+    </div>
+
+    <!-- DISCOUNTS TAB -->
+    <div id="tab-discounts" style="display:none">
+      <div class="summary-card">
+        <div>
+          <div class="summary-label">Total saved</div>
+          <div class="summary-value">$3,420</div>
+        </div>
+        <div style="text-align:right">
+          <div class="summary-label">Your 10%</div>
+          <div class="summary-value" style="color:var(--green)">$342</div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-header">Discount log</div>
+        <div class="detail-section-body" style="padding:0 16px">
+          <div class="discount-row">
+            <div>
+              <div class="discount-item">Engine filters x20</div>
+              <div class="discount-meta">AutoParts USA · Texas</div>
+            </div>
+            <div class="discount-amounts">
+              <div class="discount-saved">−$1,200</div>
+              <div class="discount-mine">+$120 yours</div>
+            </div>
+          </div>
+          <div class="discount-row">
+            <div>
+              <div class="discount-item">Brake pads x50</div>
+              <div class="discount-meta">TruckSupply Co · California</div>
+            </div>
+            <div class="discount-amounts">
+              <div class="discount-saved">−$2,220</div>
+              <div class="discount-mine">+$222 yours</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="add-card" style="width:100%;margin-top:8px" onclick="showModal('modal-add-discount')">+ Add discount</button>
+    </div>
+
+    <!-- CALENDAR TAB -->
+    <div id="tab-calendar" style="display:none">
+      <div class="detail-section">
+        <div class="detail-section-header">Movement log</div>
+        <div class="detail-section-body">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;padding-top:2px">Jun 20</div>
+              <div>
+                <div style="font-size:13px;font-weight:500">Chicago → Dallas</div>
+                <div style="font-size:11px;color:var(--text2);margin-top:2px">Loaded · ETA Jun 24</div>
+              </div>
+              <div class="badge badge-yellow" style="margin-left:auto">In transit</div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;padding-top:2px">Jun 15</div>
+              <div>
+                <div style="font-size:13px;font-weight:500">Dallas → Chicago</div>
+                <div style="font-size:11px;color:var(--text2);margin-top:2px">Empty</div>
+              </div>
+              <div class="badge badge-gray" style="margin-left:auto">Done</div>
+            </div>
+          </div>
+          <button class="add-card" style="width:100%;margin-top:16px">+ Add movement</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCREEN 3 — ORDER DETAIL
+═══════════════════════════════════ -->
+<div class="screen" id="screen-order">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" onclick="goBack('screen-truck')">←</button>
+      <div>
+        <div class="topbar-title" id="order-screen-name">—</div>
+        <div class="topbar-sub" id="order-screen-num">—</div>
+      </div>
+    </div>
+    <span id="order-screen-status" class="status-pill">—</span>
+  </div>
+  <div class="content">
+
+    <!-- PIPELINE -->
+    <div class="detail-section">
+      <div class="detail-section-header">Pipeline</div>
+      <div class="detail-section-body">
+        <div class="pipeline">
+          <div class="pipeline-step">
+            <div class="pipe-dot done"></div>
+            <div><div class="pipe-label">Order received</div><div class="pipe-sub">Jun 18 · from Truck #12</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipe-dot done"></div>
+            <div><div class="pipe-label">Pricing requests sent</div><div class="pipe-sub">3 suppliers contacted</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipe-dot active"></div>
+            <div><div class="pipe-label" style="color:var(--accent)">Comparing offers</div><div class="pipe-sub">2 of 3 responded</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipe-dot waiting"></div>
+            <div><div class="pipe-label" style="color:var(--text3)">Send for approval</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipe-dot waiting"></div>
+            <div><div class="pipe-label" style="color:var(--text3)">Confirm with supplier</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipe-dot waiting"></div>
+            <div><div class="pipe-label" style="color:var(--text3)">Create PO</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipe-dot waiting"></div>
+            <div><div class="pipe-label" style="color:var(--text3)">In transit</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipe-dot waiting"></div>
+            <div><div class="pipe-label" style="color:var(--text3)">DN received</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipe-dot waiting"></div>
+            <div><div class="pipe-label" style="color:var(--text3)">Invoice filed · Closed</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEMS -->
+    <div class="detail-section">
+      <div class="detail-section-header">Items</div>
+      <div class="detail-section-body" style="padding-top:10px">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th style="text-align:right">Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Engine oil filters</td>
+              <td class="qty" style="text-align:right">× 20</td>
+            </tr>
+            <tr>
+              <td>Brake fluid 5L</td>
+              <td class="qty" style="text-align:right">× 8</td>
+            </tr>
+            <tr>
+              <td>Windshield washer concentrate</td>
+              <td class="qty" style="text-align:right">× 15</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SUPPLIERS -->
+    <div class="detail-section">
+      <div class="detail-section-header">Suppliers contacted</div>
+      <div class="detail-section-body" style="padding:0 16px">
+        <div class="supplier-row">
+          <div class="supplier-info">
+            <div class="supplier-name">AutoParts USA</div>
+            <div class="supplier-country">🇺🇸 Texas</div>
+          </div>
+          <div class="supplier-sent sent-yes">Sent ✓</div>
+        </div>
+        <div class="supplier-row">
+          <div class="supplier-info">
+            <div class="supplier-name">TruckSupply Co</div>
+            <div class="supplier-country">🇺🇸 California</div>
+          </div>
+          <div class="supplier-sent sent-yes">Sent ✓</div>
+        </div>
+        <div class="supplier-row">
+          <div class="supplier-info">
+            <div class="supplier-name">FleetMaster</div>
+            <div class="supplier-country">🇺🇸 Illinois</div>
+          </div>
+          <div class="supplier-sent sent-no">Not sent</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILES -->
+    <div class="detail-section">
+      <div class="detail-section-header">Files</div>
+      <div class="detail-section-body" style="padding:0 16px">
+        <div class="file-item">
+          <div class="file-icon">PDF</div>
+          <div>
+            <div class="file-name">Order_spec_Jun18.pdf</div>
+            <div class="file-size">248 KB</div>
+          </div>
+        </div>
+        <div class="file-item">
+          <div class="file-icon xl">XL</div>
+          <div>
+            <div class="file-name">Price_comparison.xlsx</div>
+            <div class="file-size">84 KB</div>
+          </div>
+        </div>
+        <button class="add-card" style="width:100%;margin-top:10px;min-height:44px">+ Attach file</button>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="detail-section">
+      <div class="detail-section-header">Notes</div>
+      <div class="detail-section-body">
+        <textarea class="notes-area" placeholder="Discounts negotiated, agreements, anything relevant...">AutoParts gave 8% discount if we order 20+ filters. Agreed with manager Mike. Valid until end of month.</textarea>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     MODALS
+═══════════════════════════════════ -->
+
+<!-- ADD TRUCK -->
+<div class="modal-overlay" id="modal-add-truck">
+  <div class="modal">
+    <div class="modal-title">Add truck</div>
+    <div class="form-group">
+      <label class="form-label">Truck name / ID</label>
+      <input class="form-input" id="new-truck-name" placeholder="e.g. Truck #12 · Dallas run" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Route / Region</label>
+      <input class="form-input" id="new-truck-route" placeholder="e.g. Texas → Illinois" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Priority</label>
+      <select class="form-input" id="new-truck-priority">
+        <option value="high">🔴 High</option>
+        <option value="mid" selected>🟡 Medium</option>
+        <option value="low">⚪ Low</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="hideModal('modal-add-truck')">Cancel</button>
+      <button class="btn btn-primary" onclick="addTruck()">Add truck</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ORDER -->
+<div class="modal-overlay" id="modal-add-order">
+  <div class="modal">
+    <div class="modal-title">New order</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Order #</label>
+        <input class="form-input" id="new-order-num" placeholder="e.g. ORD-2024-047" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-input" id="new-order-priority">
+          <option value="high">🔴 High</option>
+          <option value="mid" selected>🟡 Medium</option>
+          <option value="low">⚪ Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Order name</label>
+      <input class="form-input" id="new-order-name" placeholder="e.g. Engine filters + brake fluid" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Items (one per line: Name · Qty)</label>
+      <textarea class="form-input" id="new-order-items" style="resize:none;min-height:80px" placeholder="Engine oil filters · 20&#10;Brake fluid 5L · 8"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-input" id="new-order-notes" style="resize:none;min-height:60px" placeholder="Any discounts, agreements, context..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="hideModal('modal-add-order')">Cancel</button>
+      <button class="btn btn-primary" onclick="addOrder()">Create order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DISCOUNT -->
+<div class="modal-overlay" id="modal-add-discount">
+  <div class="modal">
+    <div class="modal-title">Add discount</div>
+    <div class="form-group">
+      <label class="form-label">Item / Description</label>
+      <input class="form-input" placeholder="Engine filters x20" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Original price</label>
+        <input class="form-input" type="number" placeholder="$0" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Final price</label>
+        <input class="form-input" type="number" placeholder="$0" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Supplier</label>
+      <input class="form-input" placeholder="AutoParts USA · Texas" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="hideModal('modal-add-discount')">Cancel</button>
+      <button class="btn btn-primary" onclick="hideModal('modal-add-discount')">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const STATUS_LABELS = {
+  order:     'Order received',
+  pricing:   'Pricing',
+  compare:   'Comparing',
+  approval:  'Approval',
+  confirmed: 'Confirmed',
+  po:        'PO created',
+  transit:   'In transit',
+  delivered: 'Delivered',
+  closed:    'Closed'
+};
+const STATUS_CLASS = {
+  order:'s-order', pricing:'s-pricing', compare:'s-compare',
+  approval:'s-approval', confirmed:'s-confirmed', po:'s-po',
+  transit:'s-transit', delivered:'s-delivered', closed:'s-closed'
+};
+
+let state = {
+  trucks: [
+    { id:1, name:'Truck #12', route:'Texas → Illinois', priority:'high', archived:false, orders:[
+      { id:101, num:'ORD-2024-047', name:'Maintenance supplies', items:'Engine oil filters · 20\nBrake fluid 5L · 8\nWindshield washer · 15', status:'compare', priority:'high', days:3, notes:'AutoParts gave 8% discount if 20+ filters.', supplier:'AutoParts USA' },
+      { id:102, num:'ORD-2024-048', name:'Safety gear', items:'Reflective vests · 5\nHard hats · 3', status:'pricing', priority:'mid', days:1, notes:'', supplier:'' }
+    ]},
+    { id:2, name:'Truck #7', route:'California loop', priority:'mid', archived:false, orders:[
+      { id:201, num:'ORD-2024-039', name:'Tire replacements', items:'Tires 22.5 · 6', status:'transit', priority:'high', days:8, notes:'Shipped via FreightLine.', supplier:'TruckSupply Co' }
+    ]},
+    { id:3, name:'Truck #3', route:'New York → Boston', priority:'low', archived:false, orders:[] },
+    { id:4, name:'Truck #19', route:'Florida circuit', priority:'mid', archived:true, orders:[] }
+  ],
+  currentTruckId: null,
+  currentOrderId: null
+};
+
+// ── RENDER MAIN ───────────────────────────────────────
+function renderMain() {
+  const active = state.trucks.filter(t => !t.archived);
+  const archive = state.trucks.filter(t => t.archived);
+
+  document.getElementById('active-trucks').innerHTML =
+    active.map(renderTruckCard).join('') +
+    `<div class="add-card" onclick="showModal('modal-add-truck')">＋ Add truck</div>`;
+
+  document.getElementById('archive-trucks').innerHTML =
+    archive.length
+      ? archive.map(renderTruckCard).join('')
+      : `<div style="color:var(--text3);font-size:12px;padding:10px 0">No archived trucks</div>`;
+}
+
+function renderTruckCard(t) {
+  const pIcon = t.priority === 'high' ? '🔴' : t.priority === 'mid' ? '🟡' : '⚪';
+  const active = t.orders.filter(o => o.status !== 'closed');
+  const urgent = t.orders.filter(o => o.priority === 'high' && o.status !== 'closed');
+  return `
+    <div class="truck-card" onclick="openTruck(${t.id})" draggable="true"
+      ondragstart="dragStart(event,${t.id})" ondragover="dragOver(event)" ondrop="dropTruck(event,${t.id})" ondragleave="dragLeave(event)">
+      <div class="truck-priority">${pIcon} PRIORITY ${t.priority.toUpperCase()}</div>
+      <div class="truck-name">${t.name}</div>
+      <div class="truck-meta">${t.route}</div>
+      <div class="truck-badges">
+        ${active.length ? `<span class="badge badge-yellow">${active.length} active</span>` : ''}
+        ${urgent.length ? `<span class="badge badge-red">${urgent.length} urgent</span>` : ''}
+        ${!active.length ? `<span class="badge badge-gray">clear</span>` : ''}
+      </div>
+    </div>`;
+}
+
+// ── TRUCK SCREEN ──────────────────────────────────────
+function openTruck(id) {
+  state.currentTruckId = id;
+  const t = state.trucks.find(x => x.id === id);
+  document.getElementById('truck-screen-name').textContent = t.name;
+  document.getElementById('truck-screen-sub').textContent = t.route;
+  renderOrders(t);
+  showScreen('screen-truck');
+  // reset tabs
+  document.querySelectorAll('#screen-truck .tab').forEach((el,i) => el.classList.toggle('active', i===0));
+  document.getElementById('tab-orders').style.display = '';
+  document.getElementById('tab-discounts').style.display = 'none';
+  document.getElementById('tab-calendar').style.display = 'none';
+}
+
+function renderOrders(t) {
+  const list = document.getElementById('orders-list');
+  if (!t.orders.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>No orders yet.<br>Tap + Order to add one.</div>`;
+    return;
+  }
+  list.innerHTML = t.orders.map(o => {
+    const items = o.items.split('\n').filter(Boolean);
+    const warn = o.priority === 'high' && o.days > 2;
+    return `
+      <div class="order-card" onclick="openOrder(${t.id},${o.id})">
+        <div class="order-top">
+          <div>
+            <div class="order-num">${o.num}</div>
+            <div class="order-name">${o.name}</div>
+          </div>
+          <span class="status-pill ${STATUS_CLASS[o.status]}">${STATUS_LABELS[o.status]}</span>
+        </div>
+        <div class="order-items">${items.slice(0,2).join(' · ')}${items.length > 2 ? ` +${items.length-2} more` : ''}</div>
+        <div class="order-bottom">
+          <span class="order-days ${warn?'warn':''}">${o.days}d in status</span>
+          <span class="order-supplier">${o.supplier || '—'}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── ORDER SCREEN ──────────────────────────────────────
+function openOrder(truckId, orderId) {
+  state.currentTruckId = truckId;
+  state.currentOrderId = orderId;
+  const t = state.trucks.find(x => x.id === truckId);
+  const o = t.orders.find(x => x.id === orderId);
+  document.getElementById('order-screen-name').textContent = o.name;
+  document.getElementById('order-screen-num').textContent = o.num;
+  const pill = document.getElementById('order-screen-status');
+  pill.textContent = STATUS_LABELS[o.status];
+  pill.className = 'status-pill ' + STATUS_CLASS[o.status];
+  showScreen('screen-order');
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function showModal(id) { document.getElementById(id).classList.add('open'); }
+function hideModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ── ADD TRUCK ─────────────────────────────────────────
+function addTruck() {
+  const name = document.getElementById('new-truck-name').value.trim();
+  if (!name) return;
+  const route = document.getElementById('new-truck-route').value.trim();
+  const priority = document.getElementById('new-truck-priority').value;
+  state.trucks.unshift({ id: Date.now(), name, route, priority, archived:false, orders:[] });
+  hideModal('modal-add-truck');
+  document.getElementById('new-truck-name').value = '';
+  document.getElementById('new-truck-route').value = '';
+  renderMain();
+}
+
+// ── ADD ORDER ─────────────────────────────────────────
+function addOrder() {
+  const num = document.getElementById('new-order-num').value.trim();
+  const name = document.getElementById('new-order-name').value.trim();
+  const items = document.getElementById('new-order-items').value.trim();
+  const notes = document.getElementById('new-order-notes').value.trim();
+  const priority = document.getElementById('new-order-priority').value;
+  if (!name) return;
+  const t = state.trucks.find(x => x.id === state.currentTruckId);
+  t.orders.unshift({ id: Date.now(), num: num || 'ORD-NEW', name, items, notes, priority, status:'order', days:0, supplier:'' });
+  hideModal('modal-add-order');
+  ['new-order-num','new-order-name','new-order-items','new-order-notes'].forEach(id => document.getElementById(id).value = '');
+  renderOrders(t);
+}
+
+// ── TABS ──────────────────────────────────────────────
+function switchTab(el, targetId) {
+  document.querySelectorAll('#screen-truck .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['tab-orders','tab-discounts','tab-calendar'].forEach(id => {
+    document.getElementById(id).style.display = id === targetId ? '' : 'none';
+  });
+}
+
+// ── NAVIGATION ────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function goBack(screenId) {
+  showScreen(screenId);
+  if (screenId === 'screen-main') renderMain();
+  if (screenId === 'screen-truck') {
+    const t = state.trucks.find(x => x.id === state.currentTruckId);
+    if (t) renderOrders(t);
+  }
+}
+
+// ── DRAG & DROP (trucks) ──────────────────────────────
+let dragId = null;
+function dragStart(e, id) { dragId = id; e.currentTarget.classList.add('dragging'); }
+function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function dropTruck(e, targetId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (dragId === targetId) return;
+  const arr = state.trucks;
+  const from = arr.findIndex(t => t.id === dragId);
+  const to = arr.findIndex(t => t.id === targetId);
+  arr.splice(to, 0, arr.splice(from, 1)[0]);
+  dragId = null;
+  renderMain();
+}
+document.addEventListener('dragend', () => {
+  document.querySelectorAll('.truck-card').forEach(c => c.classList.remove('dragging','drag-over'));
+});
+
+// ── INIT ──────────────────────────────────────────────
+renderMain();
+</script>
+</body>
+</html>
