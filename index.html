@@ -844,6 +844,7 @@ const PIPELINE=[
 ];
 
 let state={
+  truckOrder:[],
   // Global supplier directory: [{id, country, suppliers:[{id,name,email,phone}]}]
   supplierDir:[
     {id:1, country:'США', suppliers:[
@@ -935,16 +936,28 @@ function getPrioTier(score,allScores){
 
 // ══ MAIN ═══════════════════════════════════════════════
 function renderMain(){
-  const active=state.trucks.filter(t=>!t.archived)
-    .sort((a,b)=>truckPriorityScore(b)-truckPriorityScore(a));
+  // respect manual order stored in state.truckOrder
+  let active=state.trucks.filter(t=>!t.archived);
+  if(state.truckOrder&&state.truckOrder.length){
+    active.sort((a,b)=>{
+      const ai=state.truckOrder.indexOf(a.id);
+      const bi=state.truckOrder.indexOf(b.id);
+      if(ai>=0&&bi>=0)return ai-bi;
+      if(ai>=0)return -1;
+      if(bi>=0)return 1;
+      return truckPriorityScore(b)-truckPriorityScore(a);
+    });
+  } else {
+    active=active.sort((a,b)=>truckPriorityScore(b)-truckPriorityScore(a));
+  }
   const archive=state.trucks.filter(t=>t.archived);
   const allScores=active.map(t=>truckPriorityScore(t));
   document.getElementById('active-trucks').innerHTML=
     active.map((t,i)=>renderTruckCard(t,allScores)).join('')+
-    `<div class="add-card" onclick="showModal('modal-add-truck')">＋</div>`;
+    '<div class="add-card" onclick="showModal(\'modal-add-truck\')">＋</div>';
   document.getElementById('archive-trucks').innerHTML=
     archive.length?archive.map(t=>renderTruckCard(t,[])).join(''):
-    `<div style="color:var(--text3);font-size:12px;padding:8px 0">Архив пуст</div>`;
+    '<div style="color:var(--text3);font-size:12px;padding:8px 0">Архив пуст</div>';
 }
 function renderTruckCard(t,allScores){
   const color=getTruckColor(t);
@@ -969,8 +982,8 @@ function renderTruckCard(t,allScores){
   const urgentBadge=urgLevel==='top-urgent'?'<span class="badge" style="background:var(--red-dim);color:var(--red)">⚠ &lt;3д</span>':'';
   const urgentLabel=urgLevel==='top-urgent'?' <span style="color:var(--red);font-size:9px;font-weight:700">URGENT</span>':'';
   const movDiv=nextMov?'<div style="font-size:var(--fs-xs);color:'+(daysUntil<=3?'var(--red)':'var(--text3)')+';margin-bottom:8px;font-family:\'JetBrains Mono\',monospace">📍 '+(nextMov.from||'?')+'→'+(nextMov.to||'?')+' · '+(daysUntil===0?'сегодня':daysUntil+'д')+'</div>':'';
-  const colorDot='<label title="Изменить цвет" style="position:absolute;bottom:10px;right:8px;width:14px;height:14px;border-radius:50%;background:'+color+';cursor:pointer;border:2px solid rgba(255,255,255,0.15);display:block;overflow:hidden" onclick="event.stopPropagation()">'+
-    '<input type="color" value="'+color+'" style="opacity:0;width:0;height:0;position:absolute" onchange="setTruckColor('+t.id+',this.value)" onclick="event.stopPropagation()"/>'+
+  const colorDot='<label title="Цвет" style="position:absolute;bottom:10px;right:8px;width:12px;height:12px;border-radius:50%;background:'+color+';cursor:pointer;border:2px solid rgba(255,255,255,0.15);display:block;overflow:hidden;z-index:10" onclick="event.stopPropagation();event.preventDefault()">'+
+    '<input type="color" value="'+color+'" style="position:absolute;width:200%;height:200%;top:-50%;left:-50%;opacity:0;cursor:pointer" onchange="event.stopPropagation();setTruckColor('+t.id+',this.value)" onclick="event.stopPropagation()"/>'+
   '</label>';
   return '<div class="truck-card '+prioClass+'" onclick="openTruck('+t.id+')" style="--tc:'+color+'" draggable="true" ondragstart="dragStart(event,'+t.id+')" ondragover="dragOver(event)" ondrop="dropTruck(event,'+t.id+')" ondragleave="dragLeave(event)">'+
     '<button class="truck-del" title="'+(t.archived?'Удалить':'В архив')+'" onclick="event.stopPropagation();'+deleteAction+'">×</button>'+
@@ -2016,7 +2029,10 @@ function dropTruck(e,targetId){
   e.preventDefault();e.currentTarget.classList.remove('drag-over');
   if(dragId===targetId)return;
   const arr=state.trucks,from=arr.findIndex(t=>t.id===dragId),to=arr.findIndex(t=>t.id===targetId);
-  arr.splice(to,0,arr.splice(from,1)[0]);dragId=null;renderMain();
+  arr.splice(to,0,arr.splice(from,1)[0]);
+  // save manual order
+  state.truckOrder=arr.filter(t=>!t.archived).map(t=>t.id);
+  dragId=null;renderMain();scheduleSave();
 }
 document.addEventListener('dragend',()=>{document.querySelectorAll('.truck-card').forEach(c=>c.classList.remove('dragging','drag-over'));dragId=null;});
 
@@ -2631,7 +2647,7 @@ function setSyncIndicator(status){
 async function saveToFirebase(){
   try{
     setSyncIndicator('saving');
-    const data={trucks:state.trucks,movements:state.movements,supplierDir:state.supplierDir};
+    const data={trucks:state.trucks,movements:state.movements,supplierDir:state.supplierDir,truckOrder:state.truckOrder};
     const encrypted=await encrypt(data);
     const hash=btoa(encrypted.slice(0,40));
     if(hash===lastSyncHash){setSyncIndicator('idle');return;}
@@ -2667,6 +2683,7 @@ async function loadFromFirebase(){
     if(raw&&raw.d){
       const data=await decrypt(raw.d);
       if(data.trucks)state.trucks=data.trucks;
+      if(data.truckOrder)state.truckOrder=data.truckOrder;
       if(data.movements)state.movements=data.movements;
       if(data.supplierDir)state.supplierDir=data.supplierDir;
       localStorage.setItem('supply_os_state',JSON.stringify(data));
@@ -2695,6 +2712,7 @@ async function pollFirebase(){
     // remote is newer — load it
     const data=await decrypt(raw.d);
     if(data.trucks)state.trucks=data.trucks;
+    if(data.truckOrder)state.truckOrder=data.truckOrder;
     if(data.movements)state.movements=data.movements;
     if(data.supplierDir)state.supplierDir=data.supplierDir;
     lastSyncHash=hash;
