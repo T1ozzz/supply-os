@@ -1,666 +1,577 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Supply OS</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
   :root {
-    --bg: #0a0a0a;
-    --surface: #111111;
-    --surface2: #1a1a1a;
-    --surface3: #222222;
-    --border: #2a2a2a;
-    --border2: #333333;
-    --accent: #e8c547;
-    --accent-dim: rgba(232,197,71,0.12);
-    --accent-dim2: rgba(232,197,71,0.06);
-    --text: #f0f0f0;
-    --text2: #888888;
-    --text3: #555555;
-    --red: #e05252;
-    --red-dim: rgba(224,82,82,0.12);
-    --green: #52c07a;
-    --green-dim: rgba(82,192,122,0.12);
-    --blue: #5298e0;
-    --blue-dim: rgba(82,152,224,0.12);
-    --orange: #e0a052;
-    --orange-dim: rgba(224,160,82,0.12);
-    --purple: #9b72e0;
-    --radius: 10px;
-    --radius-sm: 6px;
+    --bg:#0c0c0e;--surface:#131316;--surface2:#1a1a1f;--surface3:#212128;
+    --border:#28282f;--border2:#32323c;
+    --accent:#c9a84c;--accent-dim:rgba(201,168,76,0.1);--accent-dim2:rgba(201,168,76,0.05);
+    --text:#e8e8ec;--text2:#72728a;--text3:#46465a;
+    --red:#d95f5f;--red-dim:rgba(217,95,95,0.12);--red-border:rgba(217,95,95,0.3);
+    --green:#4caf7d;--green-dim:rgba(76,175,125,0.11);
+    --blue:#5b8dd9;--blue-dim:rgba(91,141,217,0.11);
+    --orange:#c47e3a;--orange-dim:rgba(196,126,58,0.11);--orange-border:rgba(196,126,58,0.28);
+    --purple:#8b6cb5;--purple-dim:rgba(139,108,181,0.11);
+    --cyan:#3a8fa0;--cyan-dim:rgba(58,143,160,0.1);
+    --pink:#a05580;--pink-dim:rgba(160,85,128,0.1);
+    --lime:#7a9e3a;--lime-dim:rgba(122,158,58,0.1);
+    --radius:10px;--radius-sm:6px;
+    --fs-xs:10px;--fs-sm:11px;--fs-base:13px;--fs-md:14px;--fs-lg:15px;--fs-xl:18px;
+    /* truck accent colors — muted, professional */
+    --tc0:#5b8dd9;--tc1:#8b6cb5;--tc2:#c47e3a;--tc3:#4caf7d;
+    --tc4:#a05580;--tc5:#3a8fa0;--tc6:#c9a84c;--tc7:#7a9e3a;
   }
+  body.fs-s{--fs-xs:9px;--fs-sm:10px;--fs-base:12px;--fs-md:13px;--fs-lg:14px;--fs-xl:16px;}
+  body.fs-l{--fs-xs:11px;--fs-sm:13px;--fs-base:15px;--fs-md:16px;--fs-lg:17px;--fs-xl:21px;}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:var(--fs-base);}
+  .screen{display:none;min-height:100vh;flex-direction:column;}
+  .screen.active{display:flex;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100;}
+  .topbar-left{display:flex;align-items:center;gap:10px;}
+  .back-btn{width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s;flex-shrink:0;}
+  .back-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .topbar-title{font-size:var(--fs-lg);font-weight:600;letter-spacing:-.3px;}
+  .topbar-sub{font-size:var(--fs-sm);color:var(--text3);margin-top:1px;}
+  .logo{font-family:'JetBrains Mono',monospace;font-size:var(--fs-sm);font-weight:500;color:var(--accent);letter-spacing:2px;text-transform:uppercase;}
+  .content{flex:1;padding:18px;overflow-y:auto;}
+  .fs-btn{padding:4px 9px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+  .fs-btn.active,.fs-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+  .section-label{font-size:var(--fs-xs);font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;margin-top:22px;}
+  .section-label:first-child{margin-top:0;}
+  /* TRUCK GRID */
+  .truck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+  .truck-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 14px 12px;cursor:pointer;transition:transform .18s,box-shadow .18s,background .15s,border-color .15s;position:relative;user-select:none;overflow:hidden;}
+  .truck-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--tc,var(--accent));}
+  .truck-card:hover{background:var(--surface2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+  .truck-card:active{transform:scale(.97);}
+  /* 5-tier priority */
+  .truck-card.prio-1{border-color:rgba(255,77,109,.55);background:rgba(255,77,109,.06);}
+  .truck-card.prio-2{border-color:rgba(255,159,67,.45);background:rgba(255,159,67,.04);}
+  .truck-card.prio-3{border-color:rgba(240,192,64,.35);background:rgba(240,192,64,.03);}
+  .truck-card.prio-4{border-color:rgba(77,166,255,.3);}
+  .truck-card.prio-5{border-color:var(--border);}
+  .truck-card.top-urgent{animation:floatUp .3s cubic-bezier(.22,.68,0,1.2) both,topUrgentGlow 1.4s ease-in-out infinite!important;}
+  .truck-card.top-urgent .truck-name{color:var(--red);}
+  .truck-card.dragging{opacity:.35;border-style:dashed;}
+  .truck-card.drag-over{border-color:var(--accent)!important;background:var(--accent-dim)!important;}
+  .truck-priority{font-family:'JetBrains Mono',monospace;font-size:var(--fs-xs);letter-spacing:1px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;}
+  .truck-name{font-size:var(--fs-md);font-weight:700;margin-bottom:10px;letter-spacing:-.3px;}
+  .truck-badges{display:flex;gap:5px;flex-wrap:wrap;}
+  .badge{font-size:var(--fs-xs);font-weight:600;padding:2px 8px;border-radius:20px;}
+  .badge-yellow{background:var(--accent-dim);color:var(--accent);}
+  .badge-red{background:var(--red-dim);color:var(--red);}
+  .badge-green{background:var(--green-dim);color:var(--green);}
+  .badge-gray{background:var(--surface3);color:var(--text2);}
+  .truck-del{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;}
+  .truck-card:hover .truck-del{opacity:1;}
+  .truck-del:hover{color:var(--red);background:var(--red-dim);}
+  /* KANBAN */
+  .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:start;}
+  .kanban-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .kanban-col-header{padding:10px 12px;font-size:var(--fs-xs);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .kanban-col-header.col-new{color:var(--blue);}
+  .kanban-col-header.col-wip{color:var(--orange);}
+  .kanban-col-header.col-done{color:var(--green);}
+  .kanban-col-body{padding:8px;display:flex;flex-direction:column;gap:6px;min-height:100px;}
+  .kanban-col-body.drag-over-col{background:var(--accent-dim);}
+  .kanban-card{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 11px;cursor:grab;transition:all .15s;position:relative;}
+  .kanban-card:hover{background:var(--surface3);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.35);}
+  .kanban-card.dragging-card{opacity:.35;cursor:grabbing;}
+  .kanban-card.prio-high{border-left:3px solid var(--red);}
+  .kanban-card.prio-mid{border-left:3px solid var(--orange);}
+  .kanban-card.prio-low{border-left:3px solid var(--border2);}
+  .kanban-card-num{font-family:'JetBrains Mono',monospace;font-size:var(--fs-xs);color:var(--text3);margin-bottom:3px;}
+  .kanban-card-name{font-size:var(--fs-sm);font-weight:600;margin-bottom:5px;line-height:1.3;}
+  .kanban-card-meta{font-size:var(--fs-xs);color:var(--text3);}
+  .kanban-card-del{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;}
+  .kanban-card:hover .kanban-card-del{opacity:1;}
+  .kanban-card-del:hover{color:var(--red);background:var(--red-dim);}
+  @media(max-width:500px){.kanban{grid-template-columns:1fr;}}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  .add-card{background:transparent;border:1px dashed var(--border2);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text3);font-size:13px;min-height:76px;width:100%;}
+  .add-card:hover{border-color:var(--accent);color:var(--accent);}
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+  .tabs{display:flex;gap:3px;padding:3px;background:var(--surface);border-radius:var(--radius);margin-bottom:18px;}
+  .tab{flex:1;padding:7px 10px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;text-align:center;color:var(--text2);transition:all .15s;}
+  .tab.active{background:var(--surface3);color:var(--text);}
 
-  /* ── SCREENS ── */
-  .screen { display: none; min-height: 100vh; flex-direction: column; }
-  .screen.active { display: flex; }
+  /* ORDERS */
+  .orders-list{display:flex;flex-direction:column;gap:8px;}
+  .order-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;cursor:pointer;transition:all .15s;position:relative;}
+  .order-card:hover{background:var(--surface2);}
+  .order-card.prio-high{border-left:3px solid var(--red);}
+  .order-card.prio-mid{border-left:3px solid var(--orange);}
+  .order-card.prio-low{border-left:3px solid var(--border2);}
+  .order-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:10px;}
+  .order-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);}
+  .order-name{font-size:14px;font-weight:600;letter-spacing:-.2px;margin-top:2px;}
+  .status-pill{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;white-space:nowrap;letter-spacing:.2px;flex-shrink:0;}
+  .order-items{font-size:12px;color:var(--text2);margin-bottom:9px;}
+  .order-bottom{display:flex;align-items:center;justify-content:space-between;}
+  .order-days{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+  .order-days.warn{color:var(--red);font-weight:600;}
+  .order-supplier{font-size:11px;color:var(--text2);}
+  .order-del{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;}
+  .order-card:hover .order-del{opacity:1;}
+  .order-del:hover{color:var(--red);background:var(--red-dim);}
 
-  /* ── TOP BAR ── */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .back-btn {
-    width: 34px; height: 34px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border2);
-    background: var(--surface);
-    color: var(--text2);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    transition: all 0.15s;
-  }
-  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .topbar-title { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
-  .topbar-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .s-order{background:var(--surface3);color:var(--text2);}
+  .s-pricing{background:var(--blue-dim);color:var(--blue);}
+  .s-compare{background:rgba(155,114,224,0.15);color:var(--purple);}
+  .s-approval{background:var(--orange-dim);color:var(--orange);}
+  .s-confirmed{background:var(--accent-dim);color:var(--accent);}
+  .s-po{background:rgba(155,114,224,0.15);color:var(--purple);}
+  .s-transit{background:var(--blue-dim);color:var(--blue);}
+  .s-delivered{background:var(--green-dim);color:var(--green);}
+  .s-closed{background:var(--surface3);color:var(--text3);}
 
-  /* ── LOGO ── */
-  .logo {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--accent);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  /* ── MAIN CONTENT ── */
-  .content { flex: 1; padding: 20px; overflow-y: auto; }
-
-  /* ── SECTION LABEL ── */
-  .section-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text3);
-    margin-bottom: 12px;
-    margin-top: 24px;
-  }
-  .section-label:first-child { margin-top: 0; }
-
-  /* ── TRUCK GRID ── */
-  .truck-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
-  }
-
-  .truck-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.15s;
-    position: relative;
-    user-select: none;
-  }
-  .truck-card:hover { border-color: var(--accent); background: var(--surface2); }
-  .truck-card.dragging { opacity: 0.4; border-style: dashed; }
-  .truck-card.drag-over { border-color: var(--accent); background: var(--accent-dim); }
-
-  .truck-priority {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text3);
-    margin-bottom: 8px;
-  }
-  .truck-name {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    letter-spacing: -0.2px;
-  }
-  .truck-meta { font-size: 11px; color: var(--text2); }
-
-  .truck-badges {
-    display: flex;
-    gap: 5px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-  }
-  .badge {
-    font-size: 10px;
-    font-weight: 500;
-    padding: 2px 7px;
-    border-radius: 20px;
-  }
-  .badge-yellow { background: var(--accent-dim); color: var(--accent); }
-  .badge-red { background: var(--red-dim); color: var(--red); }
-  .badge-green { background: var(--green-dim); color: var(--green); }
-  .badge-blue { background: var(--blue-dim); color: var(--blue); }
-  .badge-gray { background: var(--surface3); color: var(--text2); }
-
-  /* ── ADD CARD ── */
-  .add-card {
-    background: transparent;
-    border: 1px dashed var(--border2);
-    border-radius: var(--radius);
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: var(--text3);
-    font-size: 13px;
-    min-height: 80px;
-  }
-  .add-card:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ── TABS ── */
-  .tabs {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    background: var(--surface);
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-  }
-  .tab {
-    flex: 1;
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    color: var(--text2);
-    transition: all 0.15s;
-  }
-  .tab.active {
-    background: var(--surface3);
-    color: var(--text);
-  }
-
-  /* ── ORDERS LIST ── */
-  .orders-list { display: flex; flex-direction: column; gap: 8px; }
-
-  .order-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .order-card:hover { border-color: var(--border2); background: var(--surface2); }
-
-  .order-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    gap: 10px;
-  }
-  .order-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-  }
-  .order-name { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; margin-top: 2px; }
-
-  .status-pill {
-    font-size: 10px;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 20px;
-    white-space: nowrap;
-    letter-spacing: 0.3px;
-  }
-
-  .order-items { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
-
-  .order-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .order-days {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .order-days.warn { color: var(--red); }
-  .order-supplier { font-size: 11px; color: var(--text2); }
-
-  /* STATUS COLORS */
-  .s-order { background: var(--surface3); color: var(--text2); }
-  .s-pricing { background: var(--blue-dim); color: var(--blue); }
-  .s-compare { background: var(--purple); color: #fff; background: rgba(155,114,224,0.15); color: var(--purple); }
-  .s-approval { background: var(--orange-dim); color: var(--orange); }
-  .s-confirmed { background: var(--accent-dim); color: var(--accent); }
-  .s-po { background: rgba(155,114,224,0.15); color: var(--purple); }
-  .s-transit { background: var(--blue-dim); color: var(--blue); }
-  .s-delivered { background: var(--green-dim); color: var(--green); }
-  .s-closed { background: var(--surface3); color: var(--text3); }
-
-  /* ── ORDER DETAIL ── */
-  .detail-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    overflow: hidden;
-  }
-  .detail-section-header {
-    padding: 12px 16px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text3);
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
-  }
-  .detail-section-body { padding: 14px 16px; }
+  /* ORDER DETAIL */
+  .detail-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+  .detail-section-header{padding:11px 14px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);background:var(--surface2);}
+  .detail-section-body{padding:13px 14px;}
 
   /* PIPELINE */
-  .pipeline {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .pipeline-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 10px 0;
-    position: relative;
-  }
-  .pipeline-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 11px;
-    top: 32px;
-    bottom: -8px;
-    width: 1px;
-    background: var(--border);
-  }
-  .pipe-dot {
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    border: 2px solid var(--border2);
-    background: var(--surface2);
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    margin-top: 1px;
-  }
-  .pipe-dot.done { border-color: var(--green); background: var(--green-dim); }
-  .pipe-dot.done::after { content: '✓'; font-size: 10px; color: var(--green); }
-  .pipe-dot.active { border-color: var(--accent); background: var(--accent-dim); }
-  .pipe-dot.active::after { content: '●'; font-size: 8px; color: var(--accent); }
-  .pipe-dot.waiting::after { content: '○'; font-size: 8px; color: var(--text3); }
-  .pipe-label { font-size: 13px; font-weight: 500; line-height: 1.3; padding-top: 2px; }
-  .pipe-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .pipeline{display:flex;flex-direction:column;}
+  .pipeline-step{display:flex;align-items:flex-start;gap:10px;padding:8px 0;position:relative;}
+  .pipeline-step:not(:last-child)::after{content:'';position:absolute;left:10px;top:28px;bottom:-6px;width:1px;background:var(--border);}
+  .pipe-dot{width:21px;height:21px;border-radius:50%;border:2px solid var(--border2);background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;font-size:9px;transition:all .2s;}
+  .pipe-dot.done{border-color:var(--green);background:var(--green-dim);color:var(--green);}
+  .pipe-dot.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);}
+  .pipe-dot.waiting{color:var(--text3);}
+  .pipe-content{flex:1;}
+  .pipe-label{font-size:13px;font-weight:500;line-height:1.3;padding-top:2px;}
+  .pipe-label.active-label{color:var(--accent);}
+  .pipe-label.waiting-label{color:var(--text3);}
+  .pipe-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+  .pipe-confirm{margin-top:6px;}
+  .btn-confirm{padding:5px 12px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent);font-family:'Inter',sans-serif;transition:all .15s;}
+  .btn-confirm:hover{background:var(--accent);color:#000;}
 
-  /* ITEMS TABLE */
-  .items-table { width: 100%; border-collapse: collapse; }
-  .items-table th {
-    text-align: left;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text3);
-    padding: 0 0 10px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .items-table td {
-    padding: 10px 0;
-    font-size: 13px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-  .items-table tr:last-child td { border-bottom: none; }
-  .items-table .qty {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent);
-    white-space: nowrap;
-  }
+  /* INLINE EDIT */
+  .edit-list{display:flex;flex-direction:column;}
+  .edit-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .edit-row:last-child{border-bottom:none;}
+  .edit-input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;padding:0;}
+  .edit-input::placeholder{color:var(--text3);}
+  .edit-input-sm{width:70px;background:transparent;border:none;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;padding:0;text-align:right;}
+  .edit-input-sm::placeholder{color:var(--text3);}
+  .row-del{width:20px;height:20px;border-radius:50%;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+  .row-del:hover{color:var(--red);background:var(--red-dim);}
+  .add-row-btn{display:flex;align-items:center;gap:6px;padding:9px 0;color:var(--text3);font-size:12px;cursor:pointer;border:none;background:transparent;font-family:'Inter',sans-serif;transition:color .15s;width:100%;}
+  .add-row-btn:hover{color:var(--accent);}
 
-  /* SUPPLIERS CHECK */
-  .supplier-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .supplier-row:last-child { border-bottom: none; }
-  .supplier-info { display: flex; flex-direction: column; gap: 2px; }
-  .supplier-name { font-size: 13px; font-weight: 500; }
-  .supplier-country { font-size: 11px; color: var(--text3); }
-  .supplier-sent {
-    font-size: 11px;
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-weight: 500;
-  }
-  .sent-yes { background: var(--green-dim); color: var(--green); }
-  .sent-no { background: var(--surface3); color: var(--text3); }
-
-  /* NOTES */
-  .notes-area {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    padding: 12px;
-    resize: none;
-    min-height: 80px;
-    outline: none;
-    line-height: 1.6;
-  }
-  .notes-area:focus { border-color: var(--accent); }
+  /* SUPPLIERS */
+  .supplier-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .supplier-row:last-child{border-bottom:none;}
+  .supplier-info{flex:1;}
+  .supplier-name-text{font-size:13px;font-weight:500;}
+  .supplier-country-text{font-size:11px;color:var(--text3);margin-top:1px;}
+  .supplier-sent-toggle{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap;}
+  .sent-yes{background:var(--green-dim);color:var(--green);}
+  .sent-no{background:var(--surface3);color:var(--text3);}
 
   /* FILES */
-  .file-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .file-item:last-child { border-bottom: none; }
-  .file-icon {
-    width: 34px; height: 34px;
-    background: var(--blue-dim);
-    border-radius: var(--radius-sm);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-    color: var(--blue);
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    flex-shrink: 0;
-  }
-  .file-icon.xl { background: var(--green-dim); color: var(--green); }
-  .file-name { font-size: 13px; font-weight: 500; }
-  .file-size { font-size: 11px; color: var(--text3); }
+  .file-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .file-item:last-child{border-bottom:none;}
+  .file-icon{width:32px;height:32px;background:var(--blue-dim);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--blue);font-weight:700;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+  .file-icon.xl{background:var(--green-dim);color:var(--green);}
+  .file-name{font-size:13px;font-weight:500;flex:1;word-break:break-all;}
+  .file-size{font-size:11px;color:var(--text3);white-space:nowrap;}
+
+  .notes-area{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:11px;resize:none;min-height:80px;outline:none;line-height:1.6;}
+  .notes-area:focus{border-color:var(--accent);}
 
   /* DISCOUNTS */
-  .discount-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-    gap: 10px;
-  }
-  .discount-row:last-child { border-bottom: none; }
-  .discount-item { font-size: 13px; font-weight: 500; }
-  .discount-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
-  .discount-amounts { text-align: right; }
-  .discount-saved { font-size: 13px; font-weight: 600; color: var(--green); }
-  .discount-mine { font-size: 11px; color: var(--accent); margin-top: 2px; }
+  .discount-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);gap:10px;}
+  .discount-row:last-child{border-bottom:none;}
+  .discount-item{font-size:13px;font-weight:500;}
+  .discount-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+  .discount-saved{font-size:13px;font-weight:600;color:var(--green);}
+  .discount-mine{font-size:11px;color:var(--accent);margin-top:2px;text-align:right;}
+  .summary-card{background:var(--accent-dim2);border:1px solid rgba(232,197,71,0.18);border-radius:var(--radius);padding:13px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .summary-label{font-size:11px;color:var(--text2);margin-bottom:3px;}
+  .summary-value{font-size:18px;font-weight:700;color:var(--accent);}
 
-  .summary-card {
-    background: var(--accent-dim2);
-    border: 1px solid rgba(232,197,71,0.2);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .summary-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
-  .summary-value { font-size: 18px; font-weight: 700; color: var(--accent); }
+  /* CALENDAR */
+  .cal-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);}
+  .cal-row:last-child{border-bottom:none;}
+  .cal-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);white-space:nowrap;padding-top:3px;min-width:40px;}
+  .cal-info{flex:1;}
+  .cal-route{font-size:13px;font-weight:500;}
+  .cal-meta{font-size:11px;color:var(--text2);margin-top:2px;}
 
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.8);
-    z-index: 200;
-    align-items: flex-end;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius) var(--radius) 0 0;
-    width: 100%;
-    max-width: 600px;
-    padding: 20px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    letter-spacing: -0.3px;
-  }
+  /* ── ANIMATIONS (GPU only: transform + opacity) ── */
+  @keyframes fadeIn      {from{opacity:0}                              to{opacity:1}}
+  @keyframes slideUp     {from{transform:translateY(20px);opacity:0}   to{transform:translateY(0);opacity:1}}
+  @keyframes slideDown   {from{transform:translateY(-16px);opacity:0}  to{transform:translateY(0);opacity:1}}
+  @keyframes popIn       {from{transform:scale(0.9);opacity:0}         to{transform:scale(1);opacity:1}}
+  @keyframes popBounce   {0%{transform:scale(0.88);opacity:0} 60%{transform:scale(1.04);opacity:1} 100%{transform:scale(1);opacity:1}}
+  @keyframes glowPulse   {0%,100%{opacity:.6} 50%{opacity:1}}
+  @keyframes shimmer     {0%{background-position:-200% center} 100%{background-position:200% center}}
+  @keyframes floatUp     {from{transform:translateY(32px) scale(0.96);opacity:0;filter:blur(4px)} to{transform:translateY(0) scale(1);opacity:1;filter:blur(0)}}
+  @keyframes revealLeft  {from{transform:translateX(-12px);opacity:0}  to{transform:translateX(0);opacity:1}}
+  @keyframes badgePop    {0%{transform:scale(0);opacity:0} 70%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1}}
 
-  /* FORM */
-  .form-group { margin-bottom: 14px; }
-  .form-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text3);
-    margin-bottom: 6px;
-    display: block;
+  /* truck cards: staggered float-up */
+  .screen.active .truck-card{animation:floatUp .3s cubic-bezier(.22,.68,0,1.2) both;}
+  .screen.active .truck-card:nth-child(1){animation-delay:.02s}
+  .screen.active .truck-card:nth-child(2){animation-delay:.07s}
+  .screen.active .truck-card:nth-child(3){animation-delay:.12s}
+  .screen.active .truck-card:nth-child(4){animation-delay:.17s}
+  .screen.active .truck-card:nth-child(5){animation-delay:.22s}
+  .screen.active .truck-card:nth-child(6){animation-delay:.27s}
+
+  /* order cards: slide up staggered */
+  .screen.active .order-card{animation:slideUp .22s cubic-bezier(.25,.46,.45,.94) both;}
+  .screen.active .order-card:nth-child(1){animation-delay:.04s}
+  .screen.active .order-card:nth-child(2){animation-delay:.09s}
+  .screen.active .order-card:nth-child(3){animation-delay:.14s}
+  .screen.active .order-card:nth-child(4){animation-delay:.19s}
+
+  /* detail sections: cascade reveal */
+  .screen.active .detail-section{animation:slideUp .2s cubic-bezier(.25,.46,.45,.94) both;}
+  .screen.active .detail-section:nth-child(1){animation-delay:.05s}
+  .screen.active .detail-section:nth-child(2){animation-delay:.10s}
+  .screen.active .detail-section:nth-child(3){animation-delay:.15s}
+  .screen.active .detail-section:nth-child(4){animation-delay:.20s}
+  .screen.active .detail-section:nth-child(5){animation-delay:.25s}
+
+  /* topbar slides down */
+  .screen.active .topbar{animation:slideDown .22s cubic-bezier(.25,.46,.45,.94) both;}
+
+  /* tabs pop in */
+  .screen.active .tabs{animation:popIn .2s .08s cubic-bezier(.25,.46,.45,.94) both;}
+
+  /* summary card */
+  .screen.active .summary-card{animation:popBounce .32s .05s both;}
+
+  /* badges */
+  .badge{animation:badgePop .2s cubic-bezier(.34,1.56,.64,1) both;}
+
+  /* section labels */
+  .screen.active .section-label{animation:revealLeft .18s ease both;}
+
+  /* pipeline dots animate in sequence */
+  .pipe-dot{animation:popIn .18s ease both;}
+  .pipeline-step:nth-child(1) .pipe-dot{animation-delay:.06s}
+  .pipeline-step:nth-child(2) .pipe-dot{animation-delay:.10s}
+  .pipeline-step:nth-child(3) .pipe-dot{animation-delay:.14s}
+  .pipeline-step:nth-child(4) .pipe-dot{animation-delay:.18s}
+  .pipeline-step:nth-child(5) .pipe-dot{animation-delay:.22s}
+  .pipeline-step:nth-child(6) .pipe-dot{animation-delay:.26s}
+  .pipeline-step:nth-child(7) .pipe-dot{animation-delay:.30s}
+  .pipeline-step:nth-child(8) .pipe-dot{animation-delay:.34s}
+  .pipeline-step:nth-child(9) .pipe-dot{animation-delay:.38s}
+
+  /* active pipe dot glows */
+  .pipe-dot.active{animation:popIn .18s ease both, glowPulse 2s 1s ease-in-out infinite;}
+
+  /* hover micro-interactions */
+  .truck-card{transition:transform .18s ease, background .15s, border-color .15s, box-shadow .18s;}
+  .truck-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+  .truck-card:active{transform:scale(0.97);}
+  .order-card{transition:transform .15s ease, background .13s, box-shadow .15s;}
+  .order-card:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+  .order-card:active{transform:scale(0.98);}
+  .btn-confirm{transition:transform .12s ease, background .15s, color .15s;}
+  .btn-confirm:active{transform:scale(0.95);}
+  .back-btn{transition:transform .12s ease, border-color .15s, color .15s;}
+  .back-btn:active{transform:scale(0.9);}
+
+  /* MODAL — slide-up with blur backdrop */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,0);
+    z-index:200;align-items:flex-end;justify-content:center;
+    backdrop-filter:blur(0px) saturate(1);
+    transition:background .25s ease, backdrop-filter .25s ease;
+    will-change:backdrop-filter;
   }
-  .form-input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    padding: 10px 12px;
-    outline: none;
-    transition: border-color 0.15s;
+  .modal-overlay.open{display:flex;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px) saturate(1.4);}
+  .modal{
+    background:linear-gradient(160deg,var(--surface) 0%,var(--surface2) 100%);
+    border:1px solid var(--border2);
+    border-radius:var(--radius) var(--radius) 0 0;
+    width:100%;max-width:600px;padding:20px;
+    max-height:88vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform .32s cubic-bezier(.32,.72,0,1);
+    will-change:transform;
+    box-shadow:0 -8px 40px rgba(0,0,0,0.5);
   }
-  .form-input:focus { border-color: var(--accent); }
-  .form-input::placeholder { color: var(--text3); }
+  .modal-overlay.open .modal{transform:translateY(0);}
+  .modal-title{font-size:16px;font-weight:700;margin-bottom:18px;letter-spacing:-.3px;}
 
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* SUPPLIER PICKER inside modal */
+  .country-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .country-btn{padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;cursor:pointer;text-align:left;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:space-between;}
+  .country-btn:hover{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);}
+  .country-btn .country-actions{display:flex;gap:6px;opacity:0;transition:opacity .15s;}
+  .country-btn:hover .country-actions{opacity:1;}
+  .supplier-pick-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+  .supplier-pick-row:last-child{border-bottom:none;}
+  .supplier-pick-row:hover{background:var(--surface2);}
+  .supplier-pick-row.checked-row{background:var(--green-dim);}
+  .supplier-pick-check{width:20px;height:20px;border-radius:5px;border:2px solid var(--border2);background:transparent;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .15s;flex-shrink:0;}
+  .supplier-pick-check.checked{border-color:var(--green);background:var(--green);color:#000;font-weight:700;}
 
-  .btn {
-    padding: 11px 20px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    border: none;
-    font-family: 'Inter', sans-serif;
+  .form-group{margin-bottom:13px;}
+  .form-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:block;}
+  .form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;padding:10px 12px;outline:none;transition:border-color .15s;}
+  .form-input:focus{border-color:var(--accent);}
+  .form-input::placeholder{color:var(--text3);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .btn{padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none;font-family:'Inter',sans-serif;}
+  .btn-primary{background:var(--accent);color:#000;}
+  .btn-primary:hover{background:#f0ce55;}
+  .btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+  .btn-ghost:hover{border-color:var(--border2);color:var(--text);}
+  .btn-danger{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);}
+  .btn-row{display:flex;gap:8px;margin-top:18px;}
+  .btn-row .btn{flex:1;}
+
+  /* URGENT ANIMATIONS */
+  @keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-5px) rotate(-2deg)}30%{transform:translateX(5px) rotate(2deg)}45%{transform:translateX(-4px)}60%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+  @keyframes urgentPulse{0%,100%{box-shadow:0 0 0 0 rgba(224,82,82,0)}50%{box-shadow:0 0 0 6px rgba(224,82,82,0.25)}}
+  @keyframes bannerSlide{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes topUrgentGlow{0%,100%{border-color:var(--red-border);background:rgba(224,82,82,0.04)}50%{border-color:var(--red);background:rgba(224,82,82,0.12)}}
+  .truck-card.top-urgent{animation:floatUp .3s cubic-bezier(.22,.68,0,1.2) both,topUrgentGlow 1.4s ease-in-out infinite!important;}
+  .truck-card.top-urgent .truck-name{color:var(--red);}
+  .truck-card.shaking{animation:shake .5s ease both!important;}
+  /* URGENT BANNER */
+  #urgent-banner{position:fixed;top:0;left:0;right:0;z-index:300;background:linear-gradient(135deg,#e05252,#b03030);padding:12px 18px;display:none;align-items:center;justify-content:space-between;gap:10px;animation:bannerSlide .3s ease;box-shadow:0 4px 20px rgba(224,82,82,0.4);}
+  #urgent-banner.show{display:flex;}
+  #urgent-banner .banner-text{font-size:13px;font-weight:600;color:#fff;line-height:1.4;}
+  #urgent-banner .banner-sub{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;}
+  #urgent-banner .banner-close{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  /* TOAST NOTIFICATIONS */
+  @keyframes toastIn{from{transform:translateY(20px) scale(0.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+  @keyframes toastOut{from{transform:translateY(0) scale(1);opacity:1}to{transform:translateY(12px) scale(0.95);opacity:0}}
+  #toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:calc(100% - 36px);max-width:480px;}
+  .toast{
+    width:100%;background:var(--surface2);border:1px solid var(--border2);
+    border-radius:var(--radius);padding:12px 14px;
+    display:flex;align-items:flex-start;gap:10px;
+    pointer-events:all;cursor:pointer;
+    box-shadow:0 8px 32px rgba(0,0,0,0.5),0 2px 8px rgba(0,0,0,0.3);
+    animation:toastIn .25s cubic-bezier(.34,1.2,.64,1) both;
+    backdrop-filter:blur(12px);
   }
-  .btn-primary { background: var(--accent); color: #000; }
-  .btn-primary:hover { background: #f0ce55; }
-  .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-  .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
-  .btn-row { display: flex; gap: 10px; margin-top: 20px; }
-  .btn-row .btn { flex: 1; }
-
-  /* PRIORITY BADGE */
-  .priority-high { color: var(--red); }
-  .priority-mid { color: var(--orange); }
-  .priority-low { color: var(--text3); }
-
-  /* EMPTY */
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text3);
-    font-size: 13px;
-  }
-  .empty-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.3; }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-
-  /* RESPONSIVE */
-  @media (min-width: 600px) {
-    .content { padding: 24px 28px; }
-    .truck-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-    .modal { border-radius: var(--radius); margin-bottom: 40px; }
-  }
+  .toast.urgent{border-color:var(--red-border);background:rgba(30,10,10,0.95);}
+  .toast.warning{border-color:var(--orange-border);background:rgba(30,20,10,0.95);}
+  .toast.info{border-color:var(--border2);background:rgba(20,20,20,0.95);}
+  .toast.deferred{border-color:rgba(232,197,71,0.3);background:rgba(20,18,10,0.95);}
+  .toast-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+  .toast-body{flex:1;}
+  .toast-title{font-size:13px;font-weight:600;line-height:1.3;}
+  .toast.urgent .toast-title{color:var(--red);}
+  .toast.warning .toast-title{color:var(--orange);}
+  .toast.deferred .toast-title{color:var(--accent);}
+  .toast-sub{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.4;}
+  .toast-close{width:20px;height:20px;border-radius:50%;background:transparent;border:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:color .15s;}
+  .toast-close:hover{color:var(--text);}
+  .toast-progress{height:2px;border-radius:2px;margin-top:8px;background:var(--border2);overflow:hidden;}
+  .toast-progress-bar{height:100%;border-radius:2px;background:var(--accent);transition:width linear;}
+  .toast.urgent .toast-progress-bar{background:var(--red);}
+  .toast.warning .toast-progress-bar{background:var(--orange);}
+  /* deferred order badge */
+  .badge-deferred{background:rgba(85,85,85,0.3);color:var(--text3);}
+  /* DISCOUNT QUARTER FILTER */
+  .disc-q-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-family:'Inter',sans-serif;transition:all .15s;}
+  .disc-q-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .disc-q-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+  /* REPORT TABLE */
+  .report-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .report-table th{text-align:left;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:0 8px 10px 0;border-bottom:1px solid var(--border);}
+  .report-table td{padding:10px 8px 10px 0;border-bottom:1px solid var(--border);vertical-align:top;}
+  .report-table tr:last-child td{border-bottom:none;}
+  .report-table .amt{font-family:'JetBrains Mono',monospace;text-align:right;}
+  .report-q-header{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);padding:14px 0 8px;}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+  .stat-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+  .stat-value{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+  .stat-sub{font-size:11px;color:var(--text2);margin-top:3px;}
+  .bar-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
+  .bar-row:last-child{border-bottom:none;}
+  .bar-label{font-size:12px;min-width:90px;color:var(--text2);}
+  .bar-track{flex:1;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s ease;}
+  .bar-fill.red{background:var(--red);}
+  .bar-fill.green{background:var(--green);}
+  .bar-fill.blue{background:var(--blue);}
+  .bar-val{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text2);min-width:30px;text-align:right;}
+  /* QUARTER FILTER BUTTONS */
+  .disc-q-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+  .disc-q-btn:hover,.disc-q-btn.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);}
+  /* SEARCH */
+  .search-result{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:background .12s;}
+  .search-result:hover{background:var(--surface2);}
+  .search-result-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  .search-result-title{font-size:13px;font-weight:500;}
+  .search-result-sub{font-size:11px;color:var(--text2);margin-top:1px;}
+  .search-highlight{color:var(--accent);font-weight:600;}
+  ::-webkit-scrollbar{width:3px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+  @media(min-width:600px){.content{padding:22px 26px;}.truck-grid{grid-template-columns:repeat(auto-fill,minmax(175px,1fr));}.modal{border-radius:var(--radius);margin-bottom:40px;}}
 </style>
 </head>
 <body>
+<style>
+#auth-screen{position:fixed;inset:0;background:#0c0c0e;display:flex;align-items:center;justify-content:center;z-index:9999;}
+#auth-box{background:#131316;border:1px solid #28282f;border-radius:12px;padding:32px;width:300px;text-align:center;}
+#auth-logo{font-family:'JetBrains Mono',monospace;font-size:13px;color:#c9a84c;letter-spacing:2px;margin-bottom:24px;}
+#auth-title{font-size:15px;font-weight:600;color:#e8e8ec;margin-bottom:20px;}
+#auth-input{width:100%;background:#1a1a1f;border:1px solid #28282f;border-radius:6px;color:#e8e8ec;font-family:'Inter',sans-serif;font-size:14px;padding:10px 12px;outline:none;box-sizing:border-box;text-align:center;letter-spacing:2px;}
+#auth-input:focus{border-color:#c9a84c;}
+#auth-btn{width:100%;margin-top:12px;padding:10px;background:#c9a84c;color:#000;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+#auth-btn:hover{background:#d4b560;}
+#auth-error{color:#d95f5f;font-size:12px;margin-top:8px;display:none;}
+</style>
+<div id="auth-screen">
+  <div id="auth-box">
+    <div id="auth-logo">SUPPLY OS</div>
+    <div id="auth-title">Введи пароль</div>
+    <input id="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkAuth()"/>
+    <button id="auth-btn" onclick="checkAuth()">Войти</button>
+    <div id="auth-error">Неверный пароль</div>
+  </div>
+</div>
+<script>
+const AUTH_HASH='8d6d0b4f3f9a7e2c1b5a8f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4';
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++)h=Math.imul(31,h)+s.charCodeAt(i)|0;return Math.abs(h).toString(16).padStart(8,'0');}
+function checkAuth(){
+  const val=document.getElementById('auth-input').value;
+  // simple check
+  if(val==='Egogor_2007'){
+    document.getElementById('auth-screen').style.display='none';
+    try{sessionStorage.setItem('supply_auth','1');}catch(_){}
+  } else {
+    document.getElementById('auth-error').style.display='block';
+    document.getElementById('auth-input').value='';
+    document.getElementById('auth-input').focus();
+  }
+}
+// auto-check if already authed this session
+if(sessionStorage.getItem('supply_auth')==='1'){
+  document.getElementById('auth-screen').style.display='none';
+}
+</script>
 
-<!-- ═══════════════════════════════════
-     SCREEN 1 — TRUCKS (MAIN)
-═══════════════════════════════════ -->
+<!-- URGENT BANNER -->
+<div id="urgent-banner">
+  <div>
+    <div class="banner-text" id="banner-text">🚨 TOP URGENT</div>
+    <div class="banner-sub" id="banner-sub"></div>
+  </div>
+  <button class="banner-close" onclick="dismissBanner()">×</button>
+</div>
+
+<!-- SCREEN 1 — ГЛАВНАЯ -->
 <div class="screen active" id="screen-main">
   <div class="topbar">
     <div class="logo">Supply OS</div>
-    <button class="btn btn-ghost" style="font-size:12px;padding:7px 14px;" onclick="showModal('modal-add-truck')">+ Truck</button>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div style="display:flex;gap:3px">
+        <button class="fs-btn" onclick="setFontSize('s')">S</button>
+        <button class="fs-btn active" id="fs-m" onclick="setFontSize('m')">M</button>
+        <button class="fs-btn" onclick="setFontSize('l')">L</button>
+      </div>
+      <span id="sync-indicator" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);letter-spacing:.5px">● синк</span>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px;" onclick="openSearch()" title="Cmd+K">🔍</button>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px;" onclick="showScreen('screen-analytics')">📊</button>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px;" onclick="showScreen('screen-suppliers')">Поставщики</button>
+    </div>
   </div>
   <div class="content">
-
-    <div class="section-label">Active Trucks</div>
-    <div class="truck-grid" id="active-trucks">
-      <!-- Trucks injected by JS -->
-    </div>
-
-    <div class="section-label">Archive</div>
-    <div class="truck-grid" id="archive-trucks">
-      <!-- Archive trucks -->
-    </div>
-
+    <div class="section-label">Активные</div>
+    <div class="truck-grid" id="active-trucks"></div>
+    <div class="section-label">Архив</div>
+    <div class="truck-grid" id="archive-trucks"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════
-     SCREEN 2 — TRUCK DETAIL
-═══════════════════════════════════ -->
+<!-- SCREEN 2 — ТРАК -->
 <div class="screen" id="screen-truck">
   <div class="topbar">
     <div class="topbar-left">
       <button class="back-btn" onclick="goBack('screen-main')">←</button>
-      <div>
-        <div class="topbar-title" id="truck-screen-name">—</div>
-        <div class="topbar-sub" id="truck-screen-sub">—</div>
-      </div>
+      <div><div class="topbar-title" id="truck-screen-name">—</div></div>
     </div>
-    <button class="btn btn-ghost" style="font-size:12px;padding:7px 14px;" onclick="showModal('modal-add-order')">+ Order</button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:6px 11px;" onclick="showModal('modal-add-order')">+ Заявка</button>
   </div>
   <div class="content">
     <div class="tabs">
-      <div class="tab active" onclick="switchTab(this,'tab-orders')">Orders</div>
-      <div class="tab" onclick="switchTab(this,'tab-discounts')">Discounts</div>
-      <div class="tab" onclick="switchTab(this,'tab-calendar')">Movement</div>
+      <div class="tab active" onclick="switchTab(this,'tab-orders')">Заявки</div>
+      <div class="tab" onclick="switchTab(this,'tab-discounts')">Скидки</div>
+      <div class="tab" onclick="switchTab(this,'tab-calendar')">Движение</div>
     </div>
-
-    <!-- ORDERS TAB -->
     <div id="tab-orders">
-      <div class="orders-list" id="orders-list">
-        <!-- Orders injected -->
+      <div class="kanban" id="kanban-board">
+        <div class="kanban-col" id="col-new" ondragover="kanbanDragOver(event,'new')" ondrop="kanbanDrop(event,'new')" ondragleave="kanbanDragLeave(event)">
+          <div class="kanban-col-header col-new" style="gap:4px">
+            <span id="col-new-label" style="flex:1">Новые</span>
+            <button onclick="editColName('new')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">✏️</button>
+            <span id="col-new-cnt" style="opacity:.5">0</span>
+          </div>
+          <div class="kanban-col-body" id="col-new-body"></div>
+        </div>
+        <div class="kanban-col" id="col-wip" ondragover="kanbanDragOver(event,'wip')" ondrop="kanbanDrop(event,'wip')" ondragleave="kanbanDragLeave(event)">
+          <div class="kanban-col-header col-wip" style="gap:4px">
+            <span id="col-wip-label" style="flex:1">В работе</span>
+            <button onclick="editColName('wip')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">✏️</button>
+            <span id="col-wip-cnt" style="opacity:.5">0</span>
+          </div>
+          <div class="kanban-col-body" id="col-wip-body"></div>
+        </div>
+        <div class="kanban-col" id="col-done" ondragover="kanbanDragOver(event,'done')" ondrop="kanbanDrop(event,'done')" ondragleave="kanbanDragLeave(event)">
+          <div class="kanban-col-header col-done" style="gap:4px">
+            <span id="col-done-label" style="flex:1">Закрыто</span>
+            <button onclick="editColName('done')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">✏️</button>
+            <span id="col-done-cnt" style="opacity:.5">0</span>
+          </div>
+          <div class="kanban-col-body" id="col-done-body"></div>
+        </div>
       </div>
     </div>
-
-    <!-- DISCOUNTS TAB -->
     <div id="tab-discounts" style="display:none">
       <div class="summary-card">
-        <div>
-          <div class="summary-label">Total saved</div>
-          <div class="summary-value">$3,420</div>
-        </div>
-        <div style="text-align:right">
-          <div class="summary-label">Your 10%</div>
-          <div class="summary-value" style="color:var(--green)">$342</div>
-        </div>
+        <div><div class="summary-label">Скидок выбито</div><div class="summary-value" id="disc-total">$0</div></div>
+        <div style="text-align:right"><div class="summary-label">Твои 10%</div><div class="summary-value" style="color:var(--green)" id="disc-mine">$0</div></div>
+      </div>
+      <!-- Квартальный фильтр -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="disc-q-btn active" onclick="filterDiscQ(this,'all')">Всё</button>
+        <button class="disc-q-btn" onclick="filterDiscQ(this,'Q1')">Q1</button>
+        <button class="disc-q-btn" onclick="filterDiscQ(this,'Q2')">Q2</button>
+        <button class="disc-q-btn" onclick="filterDiscQ(this,'Q3')">Q3</button>
+        <button class="disc-q-btn" onclick="filterDiscQ(this,'Q4')">Q4</button>
+        <button class="disc-q-btn" onclick="showScreen('screen-disc-report')" style="margin-left:auto;color:var(--accent);border-color:rgba(232,197,71,0.3)">📋 Отчёт</button>
       </div>
       <div class="detail-section">
-        <div class="detail-section-header">Discount log</div>
-        <div class="detail-section-body" style="padding:0 16px">
-          <div class="discount-row">
-            <div>
-              <div class="discount-item">Engine filters x20</div>
-              <div class="discount-meta">AutoParts USA · Texas</div>
-            </div>
-            <div class="discount-amounts">
-              <div class="discount-saved">−$1,200</div>
-              <div class="discount-mine">+$120 yours</div>
-            </div>
-          </div>
-          <div class="discount-row">
-            <div>
-              <div class="discount-item">Brake pads x50</div>
-              <div class="discount-meta">TruckSupply Co · California</div>
-            </div>
-            <div class="discount-amounts">
-              <div class="discount-saved">−$2,220</div>
-              <div class="discount-mine">+$222 yours</div>
-            </div>
-          </div>
-        </div>
+        <div class="detail-section-header">Журнал скидок</div>
+        <div class="detail-section-body" style="padding:0 14px" id="disc-list"></div>
       </div>
-      <button class="add-card" style="width:100%;margin-top:8px" onclick="showModal('modal-add-discount')">+ Add discount</button>
+      <button class="add-card" style="margin-top:8px" onclick="openDiscountModal()">+ Добавить скидку</button>
     </div>
-
-    <!-- CALENDAR TAB -->
     <div id="tab-calendar" style="display:none">
       <div class="detail-section">
-        <div class="detail-section-header">Movement log</div>
-        <div class="detail-section-body">
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;padding-top:2px">Jun 20</div>
-              <div>
-                <div style="font-size:13px;font-weight:500">Chicago → Dallas</div>
-                <div style="font-size:11px;color:var(--text2);margin-top:2px">Loaded · ETA Jun 24</div>
-              </div>
-              <div class="badge badge-yellow" style="margin-left:auto">In transit</div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;padding-top:2px">Jun 15</div>
-              <div>
-                <div style="font-size:13px;font-weight:500">Dallas → Chicago</div>
-                <div style="font-size:11px;color:var(--text2);margin-top:2px">Empty</div>
-              </div>
-              <div class="badge badge-gray" style="margin-left:auto">Done</div>
-            </div>
-          </div>
-          <button class="add-card" style="width:100%;margin-top:16px">+ Add movement</button>
-        </div>
+        <div class="detail-section-header">Маршруты</div>
+        <div class="detail-section-body" style="padding:0 14px" id="cal-list"></div>
       </div>
+      <button class="add-card" style="margin-top:8px" onclick="openMovementModal()">+ Добавить маршрут</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════
-     SCREEN 3 — ORDER DETAIL
-═══════════════════════════════════ -->
+<!-- SCREEN 3 — ЗАЯВКА -->
 <div class="screen" id="screen-order">
   <div class="topbar">
     <div class="topbar-left">
@@ -672,445 +583,1985 @@
     </div>
     <span id="order-screen-status" class="status-pill">—</span>
   </div>
-  <div class="content">
+  <div class="content" id="order-detail-content"></div>
+</div>
 
-    <!-- PIPELINE -->
-    <div class="detail-section">
-      <div class="detail-section-header">Pipeline</div>
-      <div class="detail-section-body">
-        <div class="pipeline">
-          <div class="pipeline-step">
-            <div class="pipe-dot done"></div>
-            <div><div class="pipe-label">Order received</div><div class="pipe-sub">Jun 18 · from Truck #12</div></div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipe-dot done"></div>
-            <div><div class="pipe-label">Pricing requests sent</div><div class="pipe-sub">3 suppliers contacted</div></div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipe-dot active"></div>
-            <div><div class="pipe-label" style="color:var(--accent)">Comparing offers</div><div class="pipe-sub">2 of 3 responded</div></div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipe-dot waiting"></div>
-            <div><div class="pipe-label" style="color:var(--text3)">Send for approval</div></div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipe-dot waiting"></div>
-            <div><div class="pipe-label" style="color:var(--text3)">Confirm with supplier</div></div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipe-dot waiting"></div>
-            <div><div class="pipe-label" style="color:var(--text3)">Create PO</div></div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipe-dot waiting"></div>
-            <div><div class="pipe-label" style="color:var(--text3)">In transit</div></div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipe-dot waiting"></div>
-            <div><div class="pipe-label" style="color:var(--text3)">DN received</div></div>
-          </div>
-          <div class="pipeline-step">
-            <div class="pipe-dot waiting"></div>
-            <div><div class="pipe-label" style="color:var(--text3)">Invoice filed · Closed</div></div>
-          </div>
-        </div>
-      </div>
+<!-- SCREEN 4 — ПОСТАВЩИКИ -->
+<div class="screen" id="screen-suppliers">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" onclick="goBack('screen-main')">←</button>
+      <div><div class="topbar-title">Поставщики</div></div>
     </div>
+    <button class="btn btn-ghost" style="font-size:12px;padding:6px 11px;" onclick="showModal('modal-add-country')">+ Страна</button>
+  </div>
+  <div class="content" id="suppliers-screen-content"></div>
+</div>
 
-    <!-- ITEMS -->
-    <div class="detail-section">
-      <div class="detail-section-header">Items</div>
-      <div class="detail-section-body" style="padding-top:10px">
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th style="text-align:right">Qty</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Engine oil filters</td>
-              <td class="qty" style="text-align:right">× 20</td>
-            </tr>
-            <tr>
-              <td>Brake fluid 5L</td>
-              <td class="qty" style="text-align:right">× 8</td>
-            </tr>
-            <tr>
-              <td>Windshield washer concentrate</td>
-              <td class="qty" style="text-align:right">× 15</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+<!-- SCREEN 5 — АНАЛИТИКА -->
+<div class="screen" id="screen-analytics">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" onclick="goBack('screen-main')">←</button>
+      <div><div class="topbar-title">Аналитика</div></div>
     </div>
-
-    <!-- SUPPLIERS -->
-    <div class="detail-section">
-      <div class="detail-section-header">Suppliers contacted</div>
-      <div class="detail-section-body" style="padding:0 16px">
-        <div class="supplier-row">
-          <div class="supplier-info">
-            <div class="supplier-name">AutoParts USA</div>
-            <div class="supplier-country">🇺🇸 Texas</div>
-          </div>
-          <div class="supplier-sent sent-yes">Sent ✓</div>
-        </div>
-        <div class="supplier-row">
-          <div class="supplier-info">
-            <div class="supplier-name">TruckSupply Co</div>
-            <div class="supplier-country">🇺🇸 California</div>
-          </div>
-          <div class="supplier-sent sent-yes">Sent ✓</div>
-        </div>
-        <div class="supplier-row">
-          <div class="supplier-info">
-            <div class="supplier-name">FleetMaster</div>
-            <div class="supplier-country">🇺🇸 Illinois</div>
-          </div>
-          <div class="supplier-sent sent-no">Not sent</div>
-        </div>
-      </div>
+    <select class="form-input" id="analytics-period" style="width:auto;font-size:12px;padding:5px 10px;border-radius:var(--radius-sm)" onchange="renderAnalytics()">
+      <option value="30">30 дней</option>
+      <option value="90">3 месяца</option>
+      <option value="365">Год</option>
+      <option value="0">Всё время</option>
+    </select>
+  </div>
+  <div class="content" style="padding-top:12px">
+    <div class="tabs" style="margin-bottom:16px">
+      <div class="tab active" id="atab-orders" onclick="switchAnalyticsTab('orders')">Заявки</div>
+      <div class="tab" id="atab-discounts" onclick="switchAnalyticsTab('discounts')">💰 Скидки</div>
     </div>
-
-    <!-- FILES -->
-    <div class="detail-section">
-      <div class="detail-section-header">Files</div>
-      <div class="detail-section-body" style="padding:0 16px">
-        <div class="file-item">
-          <div class="file-icon">PDF</div>
-          <div>
-            <div class="file-name">Order_spec_Jun18.pdf</div>
-            <div class="file-size">248 KB</div>
-          </div>
-        </div>
-        <div class="file-item">
-          <div class="file-icon xl">XL</div>
-          <div>
-            <div class="file-name">Price_comparison.xlsx</div>
-            <div class="file-size">84 KB</div>
-          </div>
-        </div>
-        <button class="add-card" style="width:100%;margin-top:10px;min-height:44px">+ Attach file</button>
-      </div>
-    </div>
-
-    <!-- NOTES -->
-    <div class="detail-section">
-      <div class="detail-section-header">Notes</div>
-      <div class="detail-section-body">
-        <textarea class="notes-area" placeholder="Discounts negotiated, agreements, anything relevant...">AutoParts gave 8% discount if we order 20+ filters. Agreed with manager Mike. Valid until end of month.</textarea>
-      </div>
-    </div>
-
+    <div id="analytics-content"></div>
+    <div id="analytics-disc-content" style="display:none"></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════
-     MODALS
-═══════════════════════════════════ -->
+<!-- SEARCH MODAL -->
+<div class="modal-overlay" id="modal-search" style="align-items:flex-start;padding-top:60px">
+  <div class="modal" style="border-radius:var(--radius);max-height:70vh">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-size:16px">🔍</span>
+      <input class="form-input" id="search-input" placeholder="Заявка, трак, поставщик..." style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border2);border-radius:0;padding:6px 0;font-size:15px" oninput="renderSearchResults(this.value)" autofocus/>
+      <button class="btn-confirm" onclick="hideModal('modal-search')">Esc</button>
+    </div>
+    <div id="search-results"></div>
+  </div>
+</div>
 
-<!-- ADD TRUCK -->
+<!-- MODALS -->
 <div class="modal-overlay" id="modal-add-truck">
   <div class="modal">
-    <div class="modal-title">Add truck</div>
-    <div class="form-group">
-      <label class="form-label">Truck name / ID</label>
-      <input class="form-input" id="new-truck-name" placeholder="e.g. Truck #12 · Dallas run" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Route / Region</label>
-      <input class="form-input" id="new-truck-route" placeholder="e.g. Texas → Illinois" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Priority</label>
+    <div class="modal-title">Новый трак</div>
+    <div class="form-group"><label class="form-label">Название</label><input class="form-input" id="new-truck-name"/></div>
+    <div class="form-group"><label class="form-label">Приоритет</label>
       <select class="form-input" id="new-truck-priority">
-        <option value="high">🔴 High</option>
-        <option value="mid" selected>🟡 Medium</option>
-        <option value="low">⚪ Low</option>
+        <option value="high">🔴 Высокий</option><option value="mid" selected>🟡 Средний</option><option value="low">⚪ Низкий</option>
       </select>
     </div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="hideModal('modal-add-truck')">Cancel</button>
-      <button class="btn btn-primary" onclick="addTruck()">Add truck</button>
-    </div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="hideModal('modal-add-truck')">Отмена</button><button class="btn btn-primary" onclick="addTruck()">Добавить</button></div>
   </div>
 </div>
 
-<!-- ADD ORDER -->
 <div class="modal-overlay" id="modal-add-order">
   <div class="modal">
-    <div class="modal-title">New order</div>
+    <div class="modal-title">Новая заявка</div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Order #</label>
-        <input class="form-input" id="new-order-num" placeholder="e.g. ORD-2024-047" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Priority</label>
+      <div class="form-group"><label class="form-label">Номер</label><input class="form-input" id="new-order-num"/></div>
+      <div class="form-group"><label class="form-label">Приоритет</label>
         <select class="form-input" id="new-order-priority">
-          <option value="high">🔴 High</option>
-          <option value="mid" selected>🟡 Medium</option>
-          <option value="low">⚪ Low</option>
+          <option value="high">🔴 Высокий</option><option value="mid" selected>🟡 Средний</option><option value="low">⚪ Низкий</option>
         </select>
       </div>
     </div>
+    <div class="form-group"><label class="form-label">Название</label><input class="form-input" id="new-order-name"/></div>
     <div class="form-group">
-      <label class="form-label">Order name</label>
-      <input class="form-input" id="new-order-name" placeholder="e.g. Engine filters + brake fluid" />
+      <label class="form-label">Срочность</label>
+      <select class="form-input" id="new-order-urgency" onchange="toggleDeferredDate(this.value)">
+        <option value="normal">⚡ Обычная — учитывается системой</option>
+        <option value="deferred">🕐 Отложенная — не орать, сделаю позже</option>
+      </select>
+    </div>
+    <div class="form-group" id="deferred-date-group" style="display:none">
+      <label class="form-label">Напомнить через</label>
+      <select class="form-input" id="new-order-deferred-preset" onchange="applyDeferredPreset(this.value)">
+        <option value="">— выбери срок —</option>
+        <option value="1m">1 месяц</option>
+        <option value="2m">2 месяца</option>
+        <option value="3m">3 месяца</option>
+        <option value="6m">6 месяцев</option>
+        <option value="custom">Другая дата</option>
+      </select>
+      <input class="form-input" type="date" id="new-order-deferred-date" style="margin-top:8px;display:none"/>
+      <div id="deferred-preview" style="font-size:11px;color:var(--text3);margin-top:6px;font-family:'JetBrains Mono',monospace"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Заметки</label><textarea class="form-input" id="new-order-notes" style="resize:none;min-height:55px"></textarea></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="hideModal('modal-add-order')">Отмена</button><button class="btn btn-primary" onclick="addOrder()">Создать</button></div>
+  </div>
+</div>
+
+<!-- SCREEN 6 — ОТЧЁТ ПО СКИДКАМ -->
+<div class="screen" id="screen-disc-report">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="back-btn" onclick="goBack('screen-truck')">←</button>
+      <div><div class="topbar-title">Квартальный отчёт</div></div>
+    </div>
+    <select class="form-input" id="report-year" style="width:auto;font-size:12px;padding:5px 10px;border-radius:var(--radius-sm)" onchange="renderDiscReport()">
+    </select>
+  </div>
+  <div class="content" id="disc-report-content"></div>
+</div>
+
+<!-- НОВАЯ СКИДКА -->
+<div class="modal-overlay" id="modal-add-discount">
+  <div class="modal">
+    <div class="modal-title">Новая скидка</div>
+    <div class="form-group">
+      <label class="form-label">Заявка</label>
+      <select class="form-input" id="new-disc-order">
+        <option value="">— выбери заявку —</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Изначальная сумма $</label>
+        <input class="form-input" type="number" id="new-disc-original" placeholder="1000" min="0" oninput="calcDiscount()"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Скидка %</label>
+        <input class="form-input" type="number" id="new-disc-pct" placeholder="10" min="0" max="100" oninput="calcDiscount()"/>
+      </div>
+    </div>
+    <!-- Авторасчёт -->
+    <div id="disc-preview" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:12px;color:var(--text2)">Сумма после скидки</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text2)" id="disc-preview-after">$0</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
+        <div style="font-size:12px;color:var(--text2)">Выбито скидки</div>
+        <div style="font-size:14px;font-weight:600;color:var(--green)" id="disc-preview-saved">$0</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;padding-top:8px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;color:var(--text2)">Твои 10%</div>
+        <div style="font-size:16px;font-weight:700;color:var(--accent)" id="disc-preview-mine">$0</div>
+      </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Items (one per line: Name · Qty)</label>
-      <textarea class="form-input" id="new-order-items" style="resize:none;min-height:80px" placeholder="Engine oil filters · 20&#10;Brake fluid 5L · 8"></textarea>
+      <label class="form-label">Поставщик</label>
+      <input class="form-input" id="new-disc-supplier" placeholder="AutoParts USA"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Notes</label>
-      <textarea class="form-input" id="new-order-notes" style="resize:none;min-height:60px" placeholder="Any discounts, agreements, context..."></textarea>
+      <label class="form-label">Дата</label>
+      <input class="form-input" type="date" id="new-disc-date"/>
     </div>
     <div class="btn-row">
-      <button class="btn btn-ghost" onclick="hideModal('modal-add-order')">Cancel</button>
-      <button class="btn btn-primary" onclick="addOrder()">Create order</button>
+      <button class="btn btn-ghost" onclick="hideModal('modal-add-discount')">Отмена</button>
+      <button class="btn btn-primary" onclick="addDiscount()">Сохранить</button>
     </div>
   </div>
 </div>
 
-<!-- ADD DISCOUNT -->
-<div class="modal-overlay" id="modal-add-discount">
+<!-- МАРШРУТ -->
+<div class="modal-overlay" id="modal-add-movement">
   <div class="modal">
-    <div class="modal-title">Add discount</div>
-    <div class="form-group">
-      <label class="form-label">Item / Description</label>
-      <input class="form-input" placeholder="Engine filters x20" />
+    <div class="modal-title">Маршрут</div>
+    <div class="form-group"><label class="form-label">Трак</label><select class="form-input" id="new-mov-truck"></select></div>
+    <div class="form-group"><label class="form-label">Дата прихода</label><input class="form-input" type="date" id="new-mov-date"/></div>
+    <div class="form-group"><label class="form-label">Откуда</label><input class="form-input" id="new-mov-from" placeholder="Chicago"/></div>
+    <div class="form-group"><label class="form-label">Куда</label><input class="form-input" id="new-mov-to" placeholder="Dallas"/></div>
+    <div class="form-group"><label class="form-label">Груз</label>
+      <select class="form-input" id="new-mov-load"><option value="loaded">С грузом</option><option value="empty">Порожний</option></select>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Original price</label>
-        <input class="form-input" type="number" placeholder="$0" />
+    <div class="form-group"><label class="form-label">Заметка</label><input class="form-input" id="new-mov-note"/></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="hideModal('modal-add-movement')">Отмена</button><button class="btn btn-primary" onclick="addMovement()">Сохранить</button></div>
+  </div>
+</div>
+
+<!-- ВЫБОР ПОСТАВЩИКОВ (при подтверждении "Запросил цены") -->
+<div class="modal-overlay" id="modal-pick-suppliers">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div class="modal-title" style="margin-bottom:0" id="pick-modal-title">Выбрать поставщиков</div>
+      <button class="btn btn-ghost" id="pick-back-btn" onclick="pickBackToCountries()" style="display:none;font-size:12px;padding:5px 10px">← Назад</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px" id="pick-subtitle">Выбери страну</div>
+
+    <!-- Список стран -->
+    <div id="pick-country-list" class="country-list"></div>
+
+    <!-- Список поставщиков выбранной страны -->
+    <div id="pick-supplier-list" style="display:none">
+      <div id="pick-suppliers-rows"></div>
+      <!-- Добавить поставщика прямо тут -->
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input class="form-input" id="pick-new-sup-name" placeholder="Новый поставщик" style="flex:1;font-size:13px;padding:8px 10px"/>
+        <button class="btn btn-ghost" style="font-size:12px;padding:8px 12px;white-space:nowrap" onclick="pickAddSupplier()">＋</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Final price</label>
-        <input class="form-input" type="number" placeholder="$0" />
-      </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Supplier</label>
-      <input class="form-input" placeholder="AutoParts USA · Texas" />
+
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-ghost" onclick="hideModal('modal-pick-suppliers')" style="flex:1">Закрыть</button>
+      <button class="btn btn-primary" id="pick-confirm-btn" onclick="confirmPickSuppliers()" style="display:none;flex:1">Подтвердить →</button>
     </div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="hideModal('modal-add-discount')">Cancel</button>
-      <button class="btn btn-primary" onclick="hideModal('modal-add-discount')">Save</button>
-    </div>
+  </div>
+</div>
+
+<!-- ДОБАВИТЬ СТРАНУ -->
+<div class="modal-overlay" id="modal-add-country">
+  <div class="modal">
+    <div class="modal-title">Добавить страну</div>
+    <div class="form-group"><label class="form-label">Название страны</label><input class="form-input" id="new-country-name" placeholder="США"/></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="hideModal('modal-add-country')">Отмена</button><button class="btn btn-primary" onclick="addCountry()">Добавить</button></div>
+  </div>
+</div>
+
+<!-- ДОБАВИТЬ ПОСТАВЩИКА В СТРАНЕ -->
+<div class="modal-overlay" id="modal-add-supplier-global">
+  <div class="modal">
+    <div class="modal-title">Новый поставщик</div>
+    <div class="form-group"><label class="form-label">Название</label><input class="form-input" id="new-sup-name"/></div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="new-sup-email"/></div>
+    <div class="form-group"><label class="form-label">Телефон</label><input class="form-input" type="tel" id="new-sup-phone"/></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="hideModal('modal-add-supplier-global')">Отмена</button><button class="btn btn-primary" onclick="addSupplierGlobal()">Добавить</button></div>
+  </div>
+</div>
+
+<!-- ДОБАВИТЬ ПОСТАВЩИКА В ЗАЯВКУ (вручную, вне пайплайна) -->
+<div class="modal-overlay" id="modal-add-supplier-order">
+  <div class="modal">
+    <div class="modal-title">Добавить поставщика</div>
+    <div class="form-group"><label class="form-label">Название</label><input class="form-input" id="new-sup-ord-name"/></div>
+    <div class="form-group"><label class="form-label">Страна</label><input class="form-input" id="new-sup-ord-country"/></div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="hideModal('modal-add-supplier-order')">Отмена</button><button class="btn btn-primary" onclick="addSupplierToOrder()">Добавить</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm-delete">
+  <div class="modal">
+    <div class="modal-title" id="confirm-delete-title">Удалить?</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:4px" id="confirm-delete-sub">Это действие нельзя отменить.</div>
+    <div class="btn-row"><button class="btn btn-ghost" onclick="hideModal('modal-confirm-delete')">Отмена</button><button class="btn btn-danger" id="confirm-delete-btn">Удалить</button></div>
   </div>
 </div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────
-const STATUS_LABELS = {
-  order:     'Order received',
-  pricing:   'Pricing',
-  compare:   'Comparing',
-  approval:  'Approval',
-  confirmed: 'Confirmed',
-  po:        'PO created',
-  transit:   'In transit',
-  delivered: 'Delivered',
-  closed:    'Closed'
-};
-const STATUS_CLASS = {
-  order:'s-order', pricing:'s-pricing', compare:'s-compare',
-  approval:'s-approval', confirmed:'s-confirmed', po:'s-po',
-  transit:'s-transit', delivered:'s-delivered', closed:'s-closed'
-};
+const STATUS_LABELS={order:'Получен ордер',pricing:'Запросил цены',compare:'Сравниваю',approval:'На согласовании',confirmed:'Подтверждено',po:'PO создан',transit:'В пути',delivered:'Получен DN',closed:'Закрыто'};
+const STATUS_CLASS={order:'s-order',pricing:'s-pricing',compare:'s-compare',approval:'s-approval',confirmed:'s-confirmed',po:'s-po',transit:'s-transit',delivered:'s-delivered',closed:'s-closed'};
+const PIPELINE=[
+  {key:'order',    label:'Получен ордер'},
+  {key:'pricing',  label:'Запросил цены у поставщиков'},
+  {key:'compare',  label:'Сравниваю предложения'},
+  {key:'approval', label:'Отправил на согласование'},
+  {key:'confirmed',label:'Подтвердил поставщику'},
+  {key:'po',       label:'Завёл PO'},
+  {key:'transit',  label:'В пути'},
+  {key:'delivered',label:'Получен DN'},
+  {key:'closed',   label:'Invoice подан · Закрыто'}
+];
 
-let state = {
-  trucks: [
-    { id:1, name:'Truck #12', route:'Texas → Illinois', priority:'high', archived:false, orders:[
-      { id:101, num:'ORD-2024-047', name:'Maintenance supplies', items:'Engine oil filters · 20\nBrake fluid 5L · 8\nWindshield washer · 15', status:'compare', priority:'high', days:3, notes:'AutoParts gave 8% discount if 20+ filters.', supplier:'AutoParts USA' },
-      { id:102, num:'ORD-2024-048', name:'Safety gear', items:'Reflective vests · 5\nHard hats · 3', status:'pricing', priority:'mid', days:1, notes:'', supplier:'' }
+let state={
+  // Global supplier directory: [{id, country, suppliers:[{id,name,email,phone}]}]
+  supplierDir:[
+    {id:1, country:'США', suppliers:[
+      {id:11,name:'AutoParts USA',email:'auto@parts.com',phone:'+1 800 000'},
+      {id:12,name:'FleetMaster',email:'fleet@master.com',phone:''},
+      {id:13,name:'TruckSupply Co',email:'ts@co.com',phone:''}
     ]},
-    { id:2, name:'Truck #7', route:'California loop', priority:'mid', archived:false, orders:[
-      { id:201, num:'ORD-2024-039', name:'Tire replacements', items:'Tires 22.5 · 6', status:'transit', priority:'high', days:8, notes:'Shipped via FreightLine.', supplier:'TruckSupply Co' }
-    ]},
-    { id:3, name:'Truck #3', route:'New York → Boston', priority:'low', archived:false, orders:[] },
-    { id:4, name:'Truck #19', route:'Florida circuit', priority:'mid', archived:true, orders:[] }
+    {id:2, country:'Китай', suppliers:[
+      {id:21,name:'SinoTruck Parts',email:'sino@truck.cn',phone:''}
+    ]}
   ],
-  currentTruckId: null,
-  currentOrderId: null
+  movements:[],
+  trucks:[
+    {id:1,name:'Трак #12',priority:'high',archived:false,discounts:[],orders:[
+      {id:101,num:'ORD-2024-047',name:'Расходники',status:'compare',priority:'high',days:3,notes:'AutoParts — скидка 8% от 20 шт.',
+       items:[{id:1,name:'Масляные фильтры',qty:'20'},{id:2,name:'Тормозная жидкость 5л',qty:'8'}],
+       suppliers:[{id:11,name:'AutoParts USA',country:'США',sent:true},{id:12,name:'FleetMaster',country:'США',sent:false}],
+       files:[]},
+      {id:102,num:'ORD-2024-048',name:'Защитное снаряжение',status:'pricing',priority:'mid',days:1,notes:'',
+       items:[{id:1,name:'Жилеты',qty:'5'}],suppliers:[],files:[]}
+    ]},
+    {id:2,name:'Трак #7',priority:'mid',archived:false,discounts:[],orders:[
+      {id:201,num:'ORD-2024-039',name:'Замена шин',status:'transit',priority:'high',days:8,notes:'',
+       items:[{id:1,name:'Шины 22.5',qty:'6'}],
+       suppliers:[{id:13,name:'TruckSupply Co',country:'США',sent:true}],files:[]}
+    ]},
+    {id:3,name:'Трак #3',priority:'low',archived:false,discounts:[],orders:[]},
+    {id:4,name:'Трак #19',priority:'mid',archived:true,discounts:[],orders:[]}
+  ],
+  currentTruckId:null,
+  currentOrderId:null,
+  addingSupForCountryId:null,
+  pickSelectedCountryId:null,
+  pickChecked:{}
 };
 
-// ── RENDER MAIN ───────────────────────────────────────
-function renderMain() {
-  const active = state.trucks.filter(t => !t.archived);
-  const archive = state.trucks.filter(t => t.archived);
+function getTruck(){return state.trucks.find(x=>x.id===state.currentTruckId);}
+function getOrder(){const t=getTruck();return t?t.orders.find(x=>x.id===state.currentOrderId):null;}
+function getStepIdx(status){return PIPELINE.findIndex(s=>s.key===status);}
 
-  document.getElementById('active-trucks').innerHTML =
-    active.map(renderTruckCard).join('') +
-    `<div class="add-card" onclick="showModal('modal-add-truck')">＋ Add truck</div>`;
-
-  document.getElementById('archive-trucks').innerHTML =
-    archive.length
-      ? archive.map(renderTruckCard).join('')
-      : `<div style="color:var(--text3);font-size:12px;padding:10px 0">No archived trucks</div>`;
+// ══ FONT SIZE ════════════════════════════════════════════
+function setFontSize(size){
+  document.body.classList.remove('fs-s','fs-l');
+  if(size==='s')document.body.classList.add('fs-s');
+  if(size==='l')document.body.classList.add('fs-l');
+  document.querySelectorAll('.fs-btn').forEach(b=>b.classList.remove('active'));
+  const map={s:0,m:1,l:2};
+  document.querySelectorAll('.fs-btn')[map[size]||1].classList.add('active');
+  try{localStorage.setItem('supply_os_fontsize',size);}catch(_){}
 }
 
-function renderTruckCard(t) {
-  const pIcon = t.priority === 'high' ? '🔴' : t.priority === 'mid' ? '🟡' : '⚪';
-  const active = t.orders.filter(o => o.status !== 'closed');
-  const urgent = t.orders.filter(o => o.priority === 'high' && o.status !== 'closed');
-  return `
-    <div class="truck-card" onclick="openTruck(${t.id})" draggable="true"
-      ondragstart="dragStart(event,${t.id})" ondragover="dragOver(event)" ondrop="dropTruck(event,${t.id})" ondragleave="dragLeave(event)">
-      <div class="truck-priority">${pIcon} PRIORITY ${t.priority.toUpperCase()}</div>
-      <div class="truck-name">${t.name}</div>
-      <div class="truck-meta">${t.route}</div>
-      <div class="truck-badges">
-        ${active.length ? `<span class="badge badge-yellow">${active.length} active</span>` : ''}
-        ${urgent.length ? `<span class="badge badge-red">${urgent.length} urgent</span>` : ''}
-        ${!active.length ? `<span class="badge badge-gray">clear</span>` : ''}
-      </div>
-    </div>`;
+// ══ TRUCK COLORS ════════════════════════════════════════
+const TC_COLORS=['#5b8dd9','#8b6cb5','#c47e3a','#4caf7d','#a05580','#3a8fa0','#c9a84c','#7a9e3a'];
+function getTruckColor(t){
+  // bind to truck ID — stable across reordering
+  const hash=Math.abs(String(t.id).split('').reduce((a,c)=>a*31+c.charCodeAt(0),0));
+  return TC_COLORS[hash%TC_COLORS.length];
 }
 
-// ── TRUCK SCREEN ──────────────────────────────────────
-function openTruck(id) {
-  state.currentTruckId = id;
-  const t = state.trucks.find(x => x.id === id);
-  document.getElementById('truck-screen-name').textContent = t.name;
-  document.getElementById('truck-screen-sub').textContent = t.route;
-  renderOrders(t);
+// ══ PRIORITY SCORE (5 tiers) ════════════════════════════
+function truckPriorityScore(t){
+  const activeO=t.orders.filter(o=>!isOrderClosed(o));
+  const urgentO=t.orders.filter(o=>o.priority==='high'&&!isOrderClosed(o));
+  let score=activeO.length*3+urgentO.length*5;
+  const now=Date.now();
+  const upcoming=state.movements.filter(m=>m.truckId===t.id&&m.date)
+    .map(m=>new Date(m.date+' 12:00').getTime()).filter(d=>d>=now).sort((a,b)=>a-b);
+  if(upcoming.length){const d=(upcoming[0]-now)/(1000*60*60*24);score+=Math.max(0,10-d/3);}
+  return score;
+}
+function getPrioTier(score,allScores){
+  // relative priority: top 20% = tier1, next 20% = tier2 etc
+  const max=Math.max(...allScores,1);
+  const pct=score/max;
+  if(pct>0.8)return 1;
+  if(pct>0.6)return 2;
+  if(pct>0.4)return 3;
+  if(pct>0.2)return 4;
+  return 5;
+}
+
+// ══ MAIN ═══════════════════════════════════════════════
+function renderMain(){
+  const active=state.trucks.filter(t=>!t.archived)
+    .sort((a,b)=>truckPriorityScore(b)-truckPriorityScore(a));
+  const archive=state.trucks.filter(t=>t.archived);
+  const allScores=active.map(t=>truckPriorityScore(t));
+  document.getElementById('active-trucks').innerHTML=
+    active.map((t,i)=>renderTruckCard(t,allScores)).join('')+
+    `<div class="add-card" onclick="showModal('modal-add-truck')">＋</div>`;
+  document.getElementById('archive-trucks').innerHTML=
+    archive.length?archive.map(t=>renderTruckCard(t,[])).join(''):
+    `<div style="color:var(--text3);font-size:12px;padding:8px 0">Архив пуст</div>`;
+}
+function renderTruckCard(t,allScores){
+  const color=getTruckColor(t);
+  const score=truckPriorityScore(t);
+  const tier=allScores&&allScores.length?getPrioTier(score,allScores):5;
+  const urgLevel=t.archived?'normal':getTruckUrgencyLevel(t);
+  const prioClass=urgLevel==='top-urgent'?'top-urgent':`prio-${tier}`;
+  const activeO=t.orders.filter(o=>!isOrderClosed(o));
+  const urgentO=t.orders.filter(o=>o.priority==='high'&&!isOrderClosed(o));
+  const now=Date.now();
+  const nextMov=state.movements
+    .filter(m=>m.truckId===t.id&&m.date)
+    .map(m=>({...m,ts:new Date(m.date+' 12:00').getTime()}))
+    .filter(m=>m.ts>=now).sort((a,b)=>a.ts-b.ts)[0];
+  const daysUntil=nextMov?Math.ceil((nextMov.ts-now)/(1000*60*60*24)):null;
+  const tierIcons=['🚨','🔴','🟠','🟡','⚪'];
+  const tierIcon=urgLevel==='top-urgent'?'🚨':tierIcons[tier-1]||'⚪';
+  // use string concat to avoid nested backtick issues
+  const deleteAction=t.archived
+    ?'confirmDelete(\'Удалить навсегда?\',\'Нельзя отменить.\',()=>{state.trucks=state.trucks.filter(x=>x.id!=='+t.id+');renderMain();})'
+    :'(()=>{const tr=state.trucks.find(x=>x.id==='+t.id+');if(tr)tr.archived=true;renderMain();checkUrgency();})()';
+  const urgentBadge=urgLevel==='top-urgent'?'<span class="badge" style="background:var(--red-dim);color:var(--red)">⚠ &lt;3д</span>':'';
+  const urgentLabel=urgLevel==='top-urgent'?' <span style="color:var(--red);font-size:9px;font-weight:700">URGENT</span>':'';
+  const movDiv=nextMov?'<div style="font-size:var(--fs-xs);color:'+(daysUntil<=3?'var(--red)':'var(--text3)')+';margin-bottom:8px;font-family:\'JetBrains Mono\',monospace">📍 '+(nextMov.from||'?')+'→'+(nextMov.to||'?')+' · '+(daysUntil===0?'сегодня':daysUntil+'д')+'</div>':'';
+  return '<div class="truck-card '+prioClass+'" onclick="openTruck('+t.id+')" style="--tc:'+color+'" draggable="true" ondragstart="dragStart(event,'+t.id+')" ondragover="dragOver(event)" ondrop="dropTruck(event,'+t.id+')" ondragleave="dragLeave(event)">'+
+    '<button class="truck-del" title="'+(t.archived?'Удалить':'В архив')+'" onclick="event.stopPropagation();'+deleteAction+'">×</button>'+
+    '<div class="truck-priority">'+tierIcon+' '+activeO.length+' заявок</div>'+
+    '<div class="truck-name" style="color:'+color+'">'+t.name+urgentLabel+'</div>'+
+    movDiv+
+    '<div class="truck-badges">'+
+      (activeO.length?'<span class="badge badge-yellow">'+activeO.length+' активных</span>':'')+
+      (urgentO.length?'<span class="badge badge-red">'+urgentO.length+' срочных</span>':'')+
+      urgentBadge+
+      (!activeO.length?'<span class="badge badge-gray">чисто</span>':'')+
+    '</div></div>';
+}
+
+// ══ KANBAN COL NAMES ════════════════════════════════════
+const DEFAULT_COL_NAMES={new:'Новые',wip:'В работе',done:'Закрыто'};
+function getColNames(truckId){
+  try{
+    const raw=localStorage.getItem('col_names_'+truckId);
+    return raw?JSON.parse(raw):{...DEFAULT_COL_NAMES};
+  }catch(_){return {...DEFAULT_COL_NAMES};}
+}
+function saveColNames(truckId,names){
+  try{localStorage.setItem('col_names_'+truckId,JSON.stringify(names));}catch(_){}
+}
+function applyColNames(truckId){
+  const names=getColNames(truckId);
+  ['new','wip','done'].forEach(col=>{
+    const el=document.getElementById('col-'+col+'-label');
+    if(el)el.textContent=names[col]||DEFAULT_COL_NAMES[col];
+  });
+}
+function editColName(col){
+  const el=document.getElementById('col-'+col+'-label');
+  if(!el)return;
+  const current=el.textContent;
+  const inp=document.createElement('input');
+  inp.value=current;
+  inp.style.cssText='background:transparent;border:none;border-bottom:1px solid var(--accent);color:inherit;font:inherit;font-weight:700;font-size:inherit;outline:none;width:80px;letter-spacing:inherit;text-transform:inherit;';
+  el.replaceWith(inp);
+  inp.focus();inp.select();
+  const save=()=>{
+    const val=inp.value.trim()||current;
+    const span=document.createElement('span');
+    span.id='col-'+col+'-label';
+    span.style.cursor='text';
+    span.title='Двойной клик чтобы переименовать';
+    span.ondblclick=()=>editColName(col);
+    span.textContent=val;
+    inp.replaceWith(span);
+    const names=getColNames(state.currentTruckId);
+    names[col]=val;
+    saveColNames(state.currentTruckId,names);
+  };
+  inp.onblur=save;
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.value=current;inp.blur();}};
+}
+
+// ══ TRUCK ═══════════════════════════════════════════════
+function openTruck(id){
+  state.currentTruckId=id;
+  const t=state.trucks.find(x=>x.id===id);
+  document.getElementById('truck-screen-name').textContent=t.name;
+  renderKanban(t);renderDiscounts(t);
   showScreen('screen-truck');
-  // reset tabs
-  document.querySelectorAll('#screen-truck .tab').forEach((el,i) => el.classList.toggle('active', i===0));
-  document.getElementById('tab-orders').style.display = '';
-  document.getElementById('tab-discounts').style.display = 'none';
-  document.getElementById('tab-calendar').style.display = 'none';
+  document.querySelectorAll('#screen-truck .tab').forEach((el,i)=>el.classList.toggle('active',i===0));
+  ['tab-orders','tab-discounts','tab-calendar'].forEach((id,i)=>document.getElementById(id).style.display=i===0?'':'none');
+  renderCalendar();
+  setTimeout(()=>applyColNames(id),0);
 }
 
-function renderOrders(t) {
-  const list = document.getElementById('orders-list');
-  if (!t.orders.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>No orders yet.<br>Tap + Order to add one.</div>`;
-    return;
-  }
-  list.innerHTML = t.orders.map(o => {
-    const items = o.items.split('\n').filter(Boolean);
-    const warn = o.priority === 'high' && o.days > 2;
-    return `
-      <div class="order-card" onclick="openOrder(${t.id},${o.id})">
-        <div class="order-top">
-          <div>
-            <div class="order-num">${o.num}</div>
-            <div class="order-name">${o.name}</div>
-          </div>
-          <span class="status-pill ${STATUS_CLASS[o.status]}">${STATUS_LABELS[o.status]}</span>
-        </div>
-        <div class="order-items">${items.slice(0,2).join(' · ')}${items.length > 2 ? ` +${items.length-2} more` : ''}</div>
-        <div class="order-bottom">
-          <span class="order-days ${warn?'warn':''}">${o.days}d in status</span>
-          <span class="order-supplier">${o.supplier || '—'}</span>
-        </div>
-      </div>`;
-  }).join('');
-}
+// renderOrders kept for compatibility (called from some places)
+function renderOrders(t){renderKanban(t);}
 
-// ── ORDER SCREEN ──────────────────────────────────────
-function openOrder(truckId, orderId) {
-  state.currentTruckId = truckId;
-  state.currentOrderId = orderId;
-  const t = state.trucks.find(x => x.id === truckId);
-  const o = t.orders.find(x => x.id === orderId);
-  document.getElementById('order-screen-name').textContent = o.name;
-  document.getElementById('order-screen-num').textContent = o.num;
-  const pill = document.getElementById('order-screen-status');
-  pill.textContent = STATUS_LABELS[o.status];
-  pill.className = 'status-pill ' + STATUS_CLASS[o.status];
-  showScreen('screen-order');
-}
+function renderKanban(t){
+  if(!t)return;
+  // kanban column logic: 'new' = not yet in pipeline, 'wip' = in progress, 'done' = closed
+  const getCol=o=>{
+    if(isOrderClosed(o))return 'done';
+    if(o.kanbanCol)return o.kanbanCol; // manual override
+    if(o.status==='order')return 'new';
+    return 'wip';
+  };
+  const cols={new:[],wip:[],done:[]};
+  t.orders.forEach(o=>cols[getCol(o)].push(o));
+  // sort each col by priority
+  const sortFn=(a,b)=>{const p={high:0,mid:1,low:2};return p[a.priority]-p[b.priority]||b.days-a.days;};
+  Object.values(cols).forEach(arr=>arr.sort(sortFn));
 
-// ── MODAL ─────────────────────────────────────────────
-function showModal(id) { document.getElementById(id).classList.add('open'); }
-function hideModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-});
-
-// ── ADD TRUCK ─────────────────────────────────────────
-function addTruck() {
-  const name = document.getElementById('new-truck-name').value.trim();
-  if (!name) return;
-  const route = document.getElementById('new-truck-route').value.trim();
-  const priority = document.getElementById('new-truck-priority').value;
-  state.trucks.unshift({ id: Date.now(), name, route, priority, archived:false, orders:[] });
-  hideModal('modal-add-truck');
-  document.getElementById('new-truck-name').value = '';
-  document.getElementById('new-truck-route').value = '';
-  renderMain();
-}
-
-// ── ADD ORDER ─────────────────────────────────────────
-function addOrder() {
-  const num = document.getElementById('new-order-num').value.trim();
-  const name = document.getElementById('new-order-name').value.trim();
-  const items = document.getElementById('new-order-items').value.trim();
-  const notes = document.getElementById('new-order-notes').value.trim();
-  const priority = document.getElementById('new-order-priority').value;
-  if (!name) return;
-  const t = state.trucks.find(x => x.id === state.currentTruckId);
-  t.orders.unshift({ id: Date.now(), num: num || 'ORD-NEW', name, items, notes, priority, status:'order', days:0, supplier:'' });
-  hideModal('modal-add-order');
-  ['new-order-num','new-order-name','new-order-items','new-order-notes'].forEach(id => document.getElementById(id).value = '');
-  renderOrders(t);
-}
-
-// ── TABS ──────────────────────────────────────────────
-function switchTab(el, targetId) {
-  document.querySelectorAll('#screen-truck .tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  ['tab-orders','tab-discounts','tab-calendar'].forEach(id => {
-    document.getElementById(id).style.display = id === targetId ? '' : 'none';
+  ['new','wip','done'].forEach(col=>{
+    const body=document.getElementById(`col-${col}-body`);
+    const cnt=document.getElementById(`col-${col}-cnt`);
+    if(!body)return;
+    cnt.textContent=cols[col].length;
+    if(!cols[col].length){
+      body.innerHTML=`<div style="color:var(--text3);font-size:var(--fs-xs);text-align:center;padding:16px 0;opacity:.5">пусто</div>`;
+      return;
+    }
+    body.innerHTML=cols[col].map(o=>{
+      const isDeferred=isOrderDeferred(o);
+      const firstSent=(o.suppliers||[]).find(s=>s.sent);
+      const supplierSpan=firstSent?'<span style="margin-left:4px">'+firstSent.name+'</span>':'';
+      const delAction="confirmDelete('Удалить?','Нельзя отменить.',()=>{const tr=getTruck();tr.orders=tr.orders.filter(x=>x.id!=="+o.id+");renderKanban(tr);checkUrgency();})";
+      return '<div class="kanban-card prio-'+o.priority+'" draggable="true" ondragstart="kanbanDragStart(event,'+o.id+')" onclick="openOrder('+t.id+','+o.id+')">'+
+        '<button class="kanban-card-del" onclick="event.stopPropagation();'+delAction+'">×</button>'+
+        '<div class="kanban-card-num">'+o.num+'</div>'+
+        '<div class="kanban-card-name">'+o.name+(isDeferred?' 🕐':'')+'</div>'+
+        '<div class="kanban-card-meta">'+
+          '<span class="status-pill '+STATUS_CLASS[o.status]+'" style="font-size:9px;padding:2px 6px">'+STATUS_LABELS[o.status]+'</span>'+
+          supplierSpan+
+        '</div>'+
+      '</div>';
+    }).join('');
   });
 }
 
-// ── NAVIGATION ────────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+// kanban drag
+let kanbanDragOrderId=null;
+function kanbanDragStart(e,orderId){
+  kanbanDragOrderId=orderId;
+  setTimeout(()=>e.target.classList.add('dragging-card'),0);
+}
+function kanbanDragOver(e,col){
+  e.preventDefault();
+  document.querySelectorAll('.kanban-col-body').forEach(b=>b.classList.remove('drag-over-col'));
+  document.getElementById(`col-${col}-body`).classList.add('drag-over-col');
+}
+function kanbanDragLeave(e){
+  document.querySelectorAll('.kanban-col-body').forEach(b=>b.classList.remove('drag-over-col'));
+}
+function kanbanDrop(e,col){
+  e.preventDefault();
+  document.querySelectorAll('.kanban-col-body').forEach(b=>b.classList.remove('drag-over-col'));
+  document.querySelectorAll('.kanban-card').forEach(c=>c.classList.remove('dragging-card'));
+  if(!kanbanDragOrderId)return;
+  const t=getTruck();if(!t)return;
+  const o=t.orders.find(x=>x.id===kanbanDragOrderId);
+  if(o){o.kanbanCol=col;}
+  kanbanDragOrderId=null;
+  renderKanban(t);scheduleSave();
+}
+
+// ══ ORDER ═══════════════════════════════════════════════
+function openOrder(truckId,orderId){
+  state.currentTruckId=truckId;
+  state.currentOrderId=orderId;
+  renderOrderDetail();
+  showScreen('screen-order');
+}
+function renderOrderDetail(){
+  const o=getOrder();if(!o)return;
+  document.getElementById('order-screen-name').textContent=o.name;
+  document.getElementById('order-screen-num').textContent=o.num;
+  const pill=document.getElementById('order-screen-status');
+  pill.textContent=STATUS_LABELS[o.status];pill.className='status-pill '+STATUS_CLASS[o.status];
+  const curIdx=getStepIdx(o.status);
+
+  const backDisabled=curIdx===0?'disabled style="opacity:.3"':'';
+  const fwdDisabled=curIdx===PIPELINE.length-1?'disabled style="opacity:.3"':'';
+  const fwdAction=o.status==='pricing'?'openSupplierPicker()':'advancePipeline()';
+  const fwdLabel=o.status==='pricing'?'Поставщики':'Вперёд';
+  const pipeSteps=PIPELINE.map((step,i)=>{
+    const isDone=i<curIdx,isActive=i===curIdx,isWaiting=i>curIdx;
+    const dc=isDone?'done':isActive?'active':'waiting';
+    const dotContent=isDone?'✓':isActive?'●':'';
+    const lc=isActive?'active-label':isWaiting?'waiting-label':'';
+    return '<div class="pipeline-step" onclick="jumpPipeline('+i+')" style="cursor:pointer">'+
+      '<div class="pipe-dot '+dc+'" style="transition:all .2s">'+dotContent+'</div>'+
+      '<div class="pipe-content"><div class="pipe-label '+lc+'">'+step.label+'</div></div>'+
+    '</div>';
+  }).join('');
+  const pipeHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
+      '<button class="btn-confirm" onclick="rollbackPipeline()" '+backDisabled+'>← Назад</button>'+
+      '<span class="status-pill '+STATUS_CLASS[o.status]+'" style="font-size:11px">'+STATUS_LABELS[o.status]+'</span>'+
+      '<button class="btn-confirm" onclick="'+fwdAction+'" '+fwdDisabled+'>'+fwdLabel+' →</button>'+
+    '</div>'+
+    '<div class="pipeline">'+pipeSteps+'</div>';
+
+  const itemsHTML=(o.items||[]).map((item,i)=>`
+    <div class="edit-row">
+      <input class="edit-input" value="${item.name}" placeholder="Наименование" onchange="updateItem(${i},'name',this.value)"/>
+      <input class="edit-input-sm" value="${item.qty}" placeholder="Кол-во" onchange="updateItem(${i},'qty',this.value)"/>
+      <button class="row-del" onclick="removeItem(${i})">×</button>
+    </div>`).join('');
+
+  const supHTML=(o.suppliers||[]).map((s,i)=>`
+    <div class="supplier-row">
+      <div class="supplier-info">
+        <div class="supplier-name-text">${s.name}</div>
+        <div class="supplier-country-text">${s.country}</div>
+      </div>
+      <button class="supplier-sent-toggle ${s.sent?'sent-yes':'sent-no'}" onclick="toggleSupplierSent(${i})">${s.sent?'Отправлено ✓':'Не отправлено'}</button>
+      <button class="row-del" onclick="removeSupplier(${i})">×</button>
+    </div>`).join('');
+
+  const filesHTML=(o.files||[]).map((f,i)=>{
+    const isImg=['jpg','jpeg','png','gif','webp','svg'].includes(f.ext);
+    const isPdf=f.ext==='pdf';
+    const canPreview=isImg||isPdf;
+    const iconBg=isImg?'var(--green-dim)':isPdf?'var(--red-dim)':f.ext==='xlsx'||f.ext==='xls'?'var(--green-dim)':'var(--blue-dim)';
+    const iconColor=isImg?'var(--green)':isPdf?'var(--red)':f.ext==='xlsx'||f.ext==='xls'?'var(--green)':'var(--blue)';
+    const previewClick=canPreview&&f.dataUrl?'previewFile('+i+')':'';
+    const downloadBtn=f.dataUrl?'<a href="'+f.dataUrl+'" download="'+f.name+'" onclick="event.stopPropagation()" style="color:var(--text3);font-size:11px;text-decoration:none;padding:4px 6px;border-radius:4px;background:var(--surface3);border:1px solid var(--border2)" title="Скачать">↓</a>':'';
+    return '<div class="file-item">'+
+      '<div class="file-icon" style="background:'+iconBg+';color:'+iconColor+';cursor:'+(canPreview?'pointer':'default')+'" onclick="'+previewClick+'">'+f.ext.toUpperCase().slice(0,3)+'</div>'+
+      '<div style="flex:1;cursor:'+(f.dataUrl?'pointer':'default')+'" onclick="'+previewClick+'">'+
+        '<div class="file-name">'+f.name+'</div>'+
+        '<div class="file-size">'+f.size+'</div>'+
+      '</div>'+
+      downloadBtn+
+      '<button class="row-del" onclick="event.stopPropagation();removeFile('+i+')" style="opacity:1">×</button>'+
+    '</div>';
+  }).join('');
+
+  document.getElementById('order-detail-content').innerHTML=`
+    <div class="detail-section">
+      <div class="detail-section-header">Pipeline</div>
+      <div class="detail-section-body"><div class="pipeline">${pipeHTML}</div></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-header">Позиции</div>
+      <div class="detail-section-body" style="padding-top:4px;padding-bottom:4px">
+        <div class="edit-list" id="items-list">${itemsHTML}</div>
+        <button class="add-row-btn" onclick="addItem()">＋ Добавить позицию</button>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-header">Поставщики</div>
+      <div class="detail-section-body" style="padding:0 14px">
+        <div id="suppliers-list">${supHTML}</div>
+        <button class="add-row-btn" style="padding:10px 0" onclick="showModal('modal-add-supplier-order')">＋ Добавить вручную</button>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-header">Файлы</div>
+      <div class="detail-section-body" style="padding:0 14px">
+        <div id="files-list">${filesHTML}</div>
+        <label class="add-row-btn" style="padding:10px 0;cursor:pointer">
+          ＋ Прикрепить файл
+          <input type="file" multiple style="display:none" onchange="attachFiles(this)"/>
+        </label>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-header">Заметки</div>
+      <div class="detail-section-body">
+        <textarea class="notes-area" placeholder="Скидки, согласования, доп. инфо..." onchange="updateNotes(this.value)">${o.notes||''}</textarea>
+      </div>
+    </div>
+    <div style="margin-top:4px">
+      <button class="btn btn-danger" style="width:100%" onclick="confirmDelete('Удалить «${o.name}»?','Это действие нельзя отменить.',()=>{const t=getTruck();t.orders=t.orders.filter(x=>x.id!==${o.id});goBack('screen-truck');})">Удалить заявку</button>
+    </div>`;
+}
+
+// ══ PIPELINE ════════════════════════════════════════════
+function advancePipeline(){
+  const o=getOrder();const idx=getStepIdx(o.status);
+  if(idx<PIPELINE.length-1){o.status=PIPELINE[idx+1].key;o.days=0;renderOrderDetail();scheduleSave();}
+}
+function rollbackPipeline(){
+  const o=getOrder();const idx=getStepIdx(o.status);
+  if(idx>0){o.status=PIPELINE[idx-1].key;o.days=0;renderOrderDetail();scheduleSave();}
+}
+function jumpPipeline(targetIdx){
+  const o=getOrder();if(!o)return;
+  if(targetIdx===getStepIdx(o.status))return; // already here
+  o.status=PIPELINE[targetIdx].key;o.days=0;
+  renderOrderDetail();scheduleSave();
+}
+
+// ══ SUPPLIER PICKER ══════════════════════════════════════
+function openSupplierPicker(){
+  state.pickSelectedCountryId=null;
+  state.pickChecked={};
+  const o=getOrder();
+  (o.suppliers||[]).filter(s=>s.sent).forEach(s=>{state.pickChecked[s.id]=true;});
+  renderPickCountries();
+  document.getElementById('pick-back-btn').style.display='none';
+  document.getElementById('pick-confirm-btn').style.display='none';
+  document.getElementById('pick-country-list').style.display='';
+  document.getElementById('pick-supplier-list').style.display='none';
+  document.getElementById('pick-modal-title').textContent='Выбрать поставщиков';
+  document.getElementById('pick-subtitle').textContent='Выбери страну';
+  showModal('modal-pick-suppliers');
+}
+function renderPickCountries(){
+  const el=document.getElementById('pick-country-list');
+  el.innerHTML=state.supplierDir.map(c=>`
+    <div style="display:flex;align-items:center;gap:6px">
+      <button class="country-btn" style="flex:1" onclick="pickSelectCountry(${c.id})">
+        ${c.country}
+        <span style="color:var(--text3);font-size:11px">${c.suppliers.length} поставщиков →</span>
+      </button>
+      <button class="row-del" style="opacity:1;width:24px;height:24px;flex-shrink:0" onclick="pickRemoveCountry(${c.id})">×</button>
+    </div>`).join('')+
+    `<div style="display:flex;gap:8px;margin-top:8px">
+      <input class="form-input" id="pick-new-country" placeholder="Новая страна" style="flex:1;font-size:13px;padding:8px 10px"/>
+      <button class="btn btn-ghost" style="font-size:12px;padding:8px 12px;white-space:nowrap" onclick="pickAddCountry()">＋</button>
+    </div>`;
+}
+function pickAddCountry(){
+  const name=document.getElementById('pick-new-country').value.trim();if(!name)return;
+  state.supplierDir.push({id:Date.now(),country:name,suppliers:[]});
+  document.getElementById('pick-new-country').value='';
+  renderPickCountries();
+  if(document.getElementById('screen-suppliers').classList.contains('active'))renderSuppliersScreen();
+}
+function pickRemoveCountry(id){
+  state.supplierDir=state.supplierDir.filter(x=>x.id!==id);
+  renderPickCountries();
+  if(document.getElementById('screen-suppliers').classList.contains('active'))renderSuppliersScreen();
+}
+function pickSelectCountry(countryId){
+  state.pickSelectedCountryId=countryId;
+  const c=state.supplierDir.find(x=>x.id===countryId);
+  document.getElementById('pick-modal-title').textContent=c.country;
+  document.getElementById('pick-subtitle').textContent='Нажми на поставщика чтобы выбрать';
+  document.getElementById('pick-country-list').style.display='none';
+  renderPickSuppliers(c);
+  document.getElementById('pick-supplier-list').style.display='';
+  document.getElementById('pick-back-btn').style.display='';
+  document.getElementById('pick-confirm-btn').style.display='';
+}
+function renderPickSuppliers(c){
+  const rows=c.suppliers.map(s=>{
+    const checked=!!state.pickChecked[s.id];
+    const emailDiv=s.email?'<div style="font-size:11px;color:var(--text3)">'+s.email+'</div>':'';
+    const rowClass='supplier-pick-row'+(checked?' checked-row':'');
+    const checkClass='supplier-pick-check'+(checked?' checked':'');
+    return '<div class="'+rowClass+'" id="pick-row-'+s.id+'" onclick="togglePickCheck('+s.id+',\''+c.country+'\',\''+s.name.replace(/'/g,"\\'")+'\')">' +
+      '<div class="'+checkClass+'" id="pick-check-'+s.id+'">'+(checked?'✓':'')+'</div>'+
+      '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+s.name+'</div>'+emailDiv+'</div>'+
+      '<button class="row-del" style="opacity:0.6" onclick="event.stopPropagation();pickRemoveSupplier('+c.id+','+s.id+')">×</button>'+
+    '</div>';
+  }).join('');
+  document.getElementById('pick-suppliers-rows').innerHTML=rows||'<div style="color:var(--text3);font-size:12px;padding:10px 0">Нет поставщиков — добавь ниже</div>';
+  document.getElementById('pick-new-sup-name').value='';
+}
+function togglePickCheck(supId,country,name){
+  state.pickChecked[supId]=!state.pickChecked[supId];
+  const check=document.getElementById('pick-check-'+supId);
+  const row=document.getElementById('pick-row-'+supId);
+  if(state.pickChecked[supId]){
+    check.classList.add('checked');check.textContent='✓';
+    row.classList.add('checked-row');
+  } else {
+    check.classList.remove('checked');check.textContent='';
+    row.classList.remove('checked-row');
+  }
+}
+function pickAddSupplier(){
+  const name=document.getElementById('pick-new-sup-name').value.trim();if(!name)return;
+  const c=state.supplierDir.find(x=>x.id===state.pickSelectedCountryId);if(!c)return;
+  c.suppliers.push({id:Date.now(),name,email:'',phone:''});
+  renderPickSuppliers(c);
+  if(document.getElementById('screen-suppliers').classList.contains('active'))renderSuppliersScreen();
+}
+function pickRemoveSupplier(countryId,supId){
+  const c=state.supplierDir.find(x=>x.id===countryId);
+  if(c){c.suppliers=c.suppliers.filter(x=>x.id!==supId);renderPickSuppliers(c);}
+  if(document.getElementById('screen-suppliers').classList.contains('active'))renderSuppliersScreen();
+}
+function pickBackToCountries(){
+  state.pickSelectedCountryId=null;
+  document.getElementById('pick-country-list').style.display='';
+  document.getElementById('pick-supplier-list').style.display='none';
+  document.getElementById('pick-back-btn').style.display='none';
+  document.getElementById('pick-confirm-btn').style.display='none';
+  document.getElementById('pick-modal-title').textContent='Выбрать поставщиков';
+  document.getElementById('pick-subtitle').textContent='Выбери страну';
+  renderPickCountries();
+}
+function confirmPickSuppliers(){
+  const o=getOrder();
+  const c=state.supplierDir.find(x=>x.id===state.pickSelectedCountryId);
+  if(c){
+    c.suppliers.forEach(s=>{
+      const existing=o.suppliers.find(x=>x.id===s.id);
+      if(state.pickChecked[s.id]){
+        if(existing){existing.sent=true;}
+        else{o.suppliers.push({id:s.id,name:s.name,country:c.country,sent:true});}
+      }
+    });
+  }
+  // go back to countries so user can pick more
+  pickBackToCountries();
+  // change confirm button to "Done"
+  const btn=document.getElementById('pick-confirm-btn');
+  btn.style.display='';
+  btn.textContent='Готово ✓';
+  btn.onclick=()=>{
+    hideModal('modal-pick-suppliers');
+    renderOrderDetail();
+    scheduleSave();
+    // user advances pipeline manually
+  };
+}
+
+// ══ ITEMS ════════════════════════════════════════════════
+function addItem(){
+  const o=getOrder();o.items.push({id:Date.now(),name:'',qty:''});
+  renderOrderDetail();
+  setTimeout(()=>{const ins=document.querySelectorAll('#items-list .edit-input');if(ins.length)ins[ins.length-1].focus();},50);
+}
+function removeItem(i){const o=getOrder();o.items.splice(i,1);renderOrderDetail();}
+function updateItem(i,field,val){const o=getOrder();if(o)o.items[i][field]=val;}
+
+// ══ SUPPLIERS in order ═══════════════════════════════════
+function addSupplierToOrder(){
+  const name=document.getElementById('new-sup-ord-name').value.trim();if(!name)return;
+  const country=document.getElementById('new-sup-ord-country').value.trim();
+  const o=getOrder();
+  o.suppliers.push({id:Date.now(),name,country,sent:false});
+  hideModal('modal-add-supplier-order');
+  ['new-sup-ord-name','new-sup-ord-country'].forEach(id=>document.getElementById(id).value='');
+  renderOrderDetail();
+}
+function removeSupplier(i){const o=getOrder();o.suppliers.splice(i,1);renderOrderDetail();}
+function toggleSupplierSent(i){const o=getOrder();o.suppliers[i].sent=!o.suppliers[i].sent;renderOrderDetail();}
+
+// ══ FILES ════════════════════════════════════════════════
+function attachFiles(input){
+  const o=getOrder();
+  const files=Array.from(input.files);
+  let processed=0;
+  files.forEach(f=>{
+    const ext=f.name.split('.').pop().toLowerCase();
+    const size=f.size>1048576?(f.size/1048576).toFixed(1)+' MB':(f.size/1024).toFixed(0)+' KB';
+    const reader=new FileReader();
+    reader.onload=e=>{
+      o.files.push({id:Date.now()+Math.random(),name:f.name,ext,size,dataUrl:e.target.result});
+      processed++;
+      if(processed===files.length){renderOrderDetail();scheduleSave();}
+    };
+    reader.readAsDataURL(f);
+  });
+}
+function previewFile(i){
+  const o=getOrder();if(!o)return;
+  const f=o.files[i];if(!f||!f.dataUrl)return;
+  const w=window.open('','_blank');
+  const isImg=['jpg','jpeg','png','gif','webp','svg'].includes(f.ext);
+  if(isImg){
+    w.document.write(`<html><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${f.dataUrl}" style="max-width:100%;max-height:100vh;object-fit:contain"/></body></html>`);
+  } else {
+    // PDF and others — embed
+    w.document.write(`<html><body style="margin:0"><embed src="${f.dataUrl}" width="100%" height="100%" style="position:fixed;inset:0"/></body></html>`);
+  }
+  w.document.title=f.name;
+}
+function removeFile(i){const o=getOrder();o.files.splice(i,1);renderOrderDetail();}
+function updateNotes(val){const o=getOrder();if(o)o.notes=val;}
+
+// ══ DISCOUNTS ════════════════════════════════════════════
+
+// Populate order selector when opening discount modal
+function openDiscountModal(){
+  const t=getTruck();if(!t)return;
+  const sel=document.getElementById('new-disc-order');
+  sel.innerHTML='<option value="">— выбери заявку —</option>'+
+    t.orders.map(o=>'<option value="'+o.id+'">'+o.num+' · '+o.name+'</option>').join('');
+  document.getElementById('new-disc-date').value=new Date().toISOString().split('T')[0];
+  ['new-disc-pct','new-disc-original','new-disc-supplier'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('disc-preview').style.display='none';
+  showModal('modal-add-discount');
+}
+
+function calcDiscount(){
+  const original=parseFloat(document.getElementById('new-disc-original').value)||0;
+  const pct=parseFloat(document.getElementById('new-disc-pct').value)||0;
+  const preview=document.getElementById('disc-preview');
+  if(!original||!pct){preview.style.display='none';return;}
+  preview.style.display='';
+  const saved=original*(pct/100);
+  const after=original-saved;
+  const mine=saved*0.1;
+  document.getElementById('disc-preview-after').textContent='$'+after.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('disc-preview-saved').textContent='$'+saved.toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById('disc-preview-mine').textContent='$'+mine.toFixed(0);
+}
+
+function addDiscount(){
+  const orderId=parseInt(document.getElementById('new-disc-order').value)||null;
+  const original=parseFloat(document.getElementById('new-disc-original').value)||0;
+  const pct=parseFloat(document.getElementById('new-disc-pct').value)||0;
+  if(!pct){showToast({type:'warning',icon:'⚠️',title:'Укажи процент скидки',duration:4000});return;}
+  const amount=original*(pct/100);
+  const mine=amount*0.1;
+  const supplier=document.getElementById('new-disc-supplier').value.trim();
+  const date=document.getElementById('new-disc-date').value||new Date().toISOString().split('T')[0];
+  const t=getTruck();if(!t)return;
+  const order=orderId?t.orders.find(o=>o.id===orderId):null;
+  t.discounts.push({
+    id:Date.now(),orderId,
+    orderNum:order?order.num:'—',orderName:order?order.name:'—',
+    truckId:t.id,truckName:t.name,
+    original,pct,amount,mine,supplier,date,
+    quarter:getQuarter(date)
+  });
+  hideModal('modal-add-discount');
+  ['new-disc-original','new-disc-pct','new-disc-supplier'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('disc-preview').style.display='none';
+  renderDiscounts(t);
+  scheduleSave();
+  showToast({type:'info',icon:'💰',title:'Скидка '+pct+'% добавлена',sub:'Твои: $'+mine.toFixed(0),duration:4000});
+}
+
+function getQuarter(dateStr){
+  const d=new Date(dateStr+' 12:00');
+  const m=d.getMonth();
+  const q=Math.floor(m/3)+1;
+  return `Q${q} ${d.getFullYear()}`;
+}
+
+function renderDiscounts(t){
+  const total=t.discounts.reduce((s,d)=>s+d.amount,0);
+  const mine=t.discounts.reduce((s,d)=>s+d.mine,0);
+  const el=document.getElementById('disc-total');if(el)el.textContent='$'+total.toLocaleString(undefined,{maximumFractionDigits:0});
+  const el2=document.getElementById('disc-mine');if(el2)el2.textContent='$'+mine.toLocaleString(undefined,{maximumFractionDigits:0});
+  const list=document.getElementById('disc-list');if(!list)return;
+  if(!t.discounts.length){list.innerHTML='<div style="color:var(--text3);font-size:12px;padding:14px 0">Нет скидок</div>';return;}
+  const byQ={};
+  t.discounts.forEach(d=>{
+    const q=d.quarter||getQuarter(d.date||new Date().toISOString().split('T')[0]);
+    if(!byQ[q])byQ[q]=[];
+    byQ[q].push(d);
+  });
+  list.innerHTML=Object.entries(byQ).sort((a,b)=>b[0].localeCompare(a[0])).map(([q,discs])=>{
+    const qMine=discs.reduce((s,d)=>s+d.mine,0);
+    const discRows=discs.map(d=>{
+      const amountDiv=d.amount?'<div class="discount-saved">−$'+d.amount.toLocaleString(undefined,{maximumFractionDigits:0})+'</div>':'';
+      const mineDiv=d.mine?'<div class="discount-mine">+$'+d.mine.toFixed(0)+' твои</div>':'<div class="discount-mine">'+(d.pct*0.1).toFixed(1)+'% твои</div>';
+      return '<div class="discount-row">'+
+        '<div style="flex:1"><div class="discount-item">'+d.pct+'% · '+d.orderNum+'</div><div class="discount-meta">'+d.orderName+(d.supplier?' · '+d.supplier:'')+'</div></div>'+
+        '<div style="text-align:right;flex-shrink:0">'+amountDiv+mineDiv+'</div>'+
+        '<button class="row-del" onclick="removeDiscount(\''+d.id+'\')" style="opacity:1;margin-left:8px">×</button>'+
+      '</div>';
+    }).join('');
+    return '<div style="margin-bottom:4px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 6px;border-bottom:1px solid var(--border2)">'+
+        '<span style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text3)">'+q+'</span>'+
+        '<span style="font-size:11px;color:var(--accent)">твои: $'+qMine.toFixed(0)+'</span>'+
+      '</div>'+discRows+'</div>';
+  }).join('');
+}
+function removeDiscount(id){
+  const t=getTruck();
+  t.discounts=t.discounts.filter(d=>d.id!==id);
+  renderDiscounts(t);scheduleSave();
+}
+
+// ══ QUARTERLY REPORT ═════════════════════════════════════
+function openDiscReport(){
+  // populate year selector
+  const years=new Set();
+  const now=new Date();
+  years.add(now.getFullYear());
+  years.add(now.getFullYear()-1);
+  state.trucks.forEach(t=>t.discounts.forEach(d=>{
+    if(d.date)years.add(new Date(d.date+' 12:00').getFullYear());
+  }));
+  const sel=document.getElementById('report-year');
+  sel.innerHTML=[...years].sort((a,b)=>b-a).map(y=>`<option value="${y}"${y===now.getFullYear()?' selected':''}>${y}</option>`).join('');
+  showScreen('screen-disc-report');
+  renderDiscReport();
+}
+
+function renderDiscReport(){
+  const year=parseInt(document.getElementById('report-year').value)||new Date().getFullYear();
+  const el=document.getElementById('disc-report-content');if(!el)return;
+
+  // collect all discounts for this year across all trucks
+  const all=[];
+  state.trucks.forEach(t=>{
+    t.discounts.forEach(d=>{
+      const dy=d.date?new Date(d.date+' 12:00').getFullYear():null;
+      if(dy===year)all.push({...d,truckName:t.name});
+    });
+  });
+
+  if(!all.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">💰</div>Нет скидок за '+year+' год</div>';
+    return;
+  }
+
+  const quarters=['Q1','Q2','Q3','Q4'];
+  const totalYear=all.reduce((s,d)=>s+d.mine,0);
+
+  const summaryCard='<div class="summary-card" style="margin-bottom:16px">'+
+    '<div><div class="summary-label">Твой заработок '+year+'</div><div class="summary-value">$'+totalYear.toFixed(0)+'</div></div>'+
+    '<div style="text-align:right"><div class="summary-label">Записей</div><div class="summary-value" style="color:var(--blue)">'+all.length+'</div></div>'+
+  '</div>';
+
+  const qSections=quarters.map(q=>{
+    const qDiscs=all.filter(d=>d.quarter&&d.quarter.startsWith(q));
+    if(!qDiscs.length)return '';
+    const qMine=qDiscs.reduce((s,d)=>s+d.mine,0);
+    const qSaved=qDiscs.reduce((s,d)=>s+d.amount,0);
+    const rows=qDiscs.map(d=>
+      '<tr style="border-top:1px solid var(--border)">'+
+        '<td style="padding:9px 14px;color:var(--text2)">'+d.truckName+'</td>'+
+        '<td style="padding:9px 6px"><div style="font-weight:500">'+d.orderNum+'</div><div style="color:var(--text3);font-size:11px">'+d.orderName+'</div></td>'+
+        '<td style="padding:9px 14px;text-align:right;color:var(--green);font-weight:600">'+d.pct+'%</td>'+
+        '<td style="padding:9px 14px;text-align:right;color:var(--text2)">'+(d.amount?'$'+d.amount.toLocaleString(undefined,{maximumFractionDigits:0}):'—')+'</td>'+
+        '<td style="padding:9px 14px;text-align:right;color:var(--accent);font-weight:700">'+(d.mine?'$'+d.mine.toFixed(0):'—')+'</td>'+
+      '</tr>'
+    ).join('');
+    return '<div class="detail-section" style="margin-bottom:12px">'+
+      '<div class="detail-section-header" style="display:flex;justify-content:space-between">'+
+        '<span>'+q+' '+year+'</span><span style="color:var(--accent)">твои: $'+qMine.toFixed(0)+'</span>'+
+      '</div>'+
+      '<div class="detail-section-body" style="padding:0">'+
+        '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+          '<thead><tr style="background:var(--surface2)">'+
+            '<th style="text-align:left;padding:8px 14px;color:var(--text3);font-weight:600">Трак</th>'+
+            '<th style="text-align:left;padding:8px 6px;color:var(--text3);font-weight:600">Заявка</th>'+
+            '<th style="text-align:right;padding:8px 14px;color:var(--text3);font-weight:600">%</th>'+
+            '<th style="text-align:right;padding:8px 14px;color:var(--text3);font-weight:600">Скидка</th>'+
+            '<th style="text-align:right;padding:8px 14px;color:var(--accent);font-weight:600">Твои</th>'+
+          '</tr></thead>'+
+          '<tbody>'+rows+
+            '<tr style="border-top:2px solid var(--border2);background:var(--surface2)">'+
+              '<td colspan="3" style="padding:9px 14px;font-weight:600">Итого '+q+'</td>'+
+              '<td style="padding:9px 14px;text-align:right;color:var(--green);font-weight:600">'+(qSaved?'$'+qSaved.toLocaleString(undefined,{maximumFractionDigits:0}):'—')+'</td>'+
+              '<td style="padding:9px 14px;text-align:right;color:var(--accent);font-weight:700">$'+qMine.toFixed(0)+'</td>'+
+            '</tr>'+
+          '</tbody>'+
+        '</table>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  el.innerHTML=summaryCard+qSections;
+}
+
+// ══ MOVEMENTS ════════════════════════════════════════════
+function openMovementModal(){
+  const sel=document.getElementById('new-mov-truck');
+  const active=state.trucks.filter(t=>!t.archived);
+  sel.innerHTML=active.map(t=>`<option value="${t.id}"${t.id===state.currentTruckId?' selected':''}>${t.name}</option>`).join('');
+  showModal('modal-add-movement');
+}
+function addMovement(){
+  const truckId=parseInt(document.getElementById('new-mov-truck').value);
+  const truck=state.trucks.find(x=>x.id===truckId);
+  const date=document.getElementById('new-mov-date').value;
+  const from=document.getElementById('new-mov-from').value.trim();
+  const to=document.getElementById('new-mov-to').value.trim();
+  if(!from&&!to)return;
+  const load=document.getElementById('new-mov-load').value;
+  const note=document.getElementById('new-mov-note').value.trim();
+  state.movements.unshift({id:Date.now(),truckId,truckName:truck?truck.name:'',date,from,to,load,note});
+  hideModal('modal-add-movement');
+  ['new-mov-from','new-mov-to','new-mov-note'].forEach(id=>document.getElementById(id).value='');
+  renderCalendar();
+}
+function renderCalendar(){
+  const list=document.getElementById('cal-list');if(!list)return;
+  const filtered=state.movements.filter(m=>m.truckId===state.currentTruckId);
+  if(!filtered.length){list.innerHTML=`<div style="color:var(--text3);font-size:12px;padding:14px 0">Маршрутов нет</div>`;return;}
+  list.innerHTML=filtered.map((m,idx)=>{
+    const d=m.date?new Date(m.date+' 12:00').toLocaleDateString('ru',{day:'numeric',month:'short'}):'—';
+    const loadLabel=m.load==='loaded'?'С грузом':'Порожний';
+    return `<div class="cal-row">
+      <div class="cal-date">${d}</div>
+      <div class="cal-info">
+        <div class="cal-route">${m.from||'—'} → ${m.to||'—'}</div>
+        <div class="cal-meta">${loadLabel}${m.note?' · '+m.note:''}</div>
+      </div>
+      <button class="row-del" onclick="removeMovement(${idx})" style="opacity:1;flex-shrink:0">×</button>
+    </div>`;
+  }).join('');
+}
+function removeMovement(idx){
+  const filtered=state.movements.filter(m=>m.truckId===state.currentTruckId);
+  const mov=filtered[idx];
+  state.movements=state.movements.filter(m=>m.id!==mov.id);
+  renderCalendar();
+}
+
+// ══ GLOBAL SUPPLIERS SCREEN ══════════════════════════════
+function renderSuppliersScreen(){
+  const c=document.getElementById('suppliers-screen-content');
+  if(!c)return;
+  c.innerHTML=state.supplierDir.map((country)=>{
+    const suppRows=country.suppliers.length?
+      country.suppliers.map(s=>
+        '<div class="supplier-row">'+
+          '<div class="supplier-info">'+
+            '<div class="supplier-name-text">'+s.name+'</div>'+
+            '<div class="supplier-country-text">'+(s.email||'')+(s.phone?' · '+s.phone:'')+'</div>'+
+          '</div>'+
+          '<button class="row-del" style="opacity:1" onclick="removeGlobalSupplier('+country.id+','+s.id+')">×</button>'+
+        '</div>'
+      ).join(''):
+      '<div style="color:var(--text3);font-size:12px;padding:10px 0">Поставщиков нет</div>';
+    return '<div class="detail-section" style="margin-bottom:10px">'+
+      '<div class="detail-section-header" style="display:flex;align-items:center;justify-content:space-between">'+
+        '<span>'+country.country+'</span>'+
+        '<div style="display:flex;gap:8px">'+
+          '<button class="btn-confirm" onclick="openAddSupplierGlobal('+country.id+')">+ Поставщик</button>'+
+          '<button class="row-del" style="opacity:1" onclick="removeCountry('+country.id+')">×</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="detail-section-body" style="padding:0 14px">'+suppRows+'</div>'+
+    '</div>';
+  }).join('')+
+  (state.supplierDir.length?'':'<div class="empty-state"><div class="empty-icon">🌍</div>Стран нет.<br>Нажми + Страна чтобы добавить.</div>');
+}
+function addCountry(){
+  const name=document.getElementById('new-country-name').value.trim();if(!name)return;
+  state.supplierDir.push({id:Date.now(),country:name,suppliers:[]});
+  hideModal('modal-add-country');
+  document.getElementById('new-country-name').value='';
+  renderSuppliersScreen();
+}
+function removeCountry(id){
+  state.supplierDir=state.supplierDir.filter(x=>x.id!==id);
+  renderSuppliersScreen();
+}
+function openAddSupplierGlobal(countryId){
+  state.addingSupForCountryId=countryId;
+  showModal('modal-add-supplier-global');
+}
+function addSupplierGlobal(){
+  const name=document.getElementById('new-sup-name').value.trim();if(!name)return;
+  const email=document.getElementById('new-sup-email').value.trim();
+  const phone=document.getElementById('new-sup-phone').value.trim();
+  const c=state.supplierDir.find(x=>x.id===state.addingSupForCountryId);
+  if(c)c.suppliers.push({id:Date.now(),name,email,phone});
+  hideModal('modal-add-supplier-global');
+  ['new-sup-name','new-sup-email','new-sup-phone'].forEach(id=>document.getElementById(id).value='');
+  renderSuppliersScreen();
+}
+function removeGlobalSupplier(countryId,supId){
+  const c=state.supplierDir.find(x=>x.id===countryId);
+  if(c)c.suppliers=c.suppliers.filter(x=>x.id!==supId);
+  renderSuppliersScreen();
+}
+
+// ══ MODAL ════════════════════════════════════════════════
+function showModal(id){document.getElementById(id).classList.add('open');}
+function hideModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+function confirmDelete(title,sub,fn){
+  document.getElementById('confirm-delete-title').textContent=title;
+  document.getElementById('confirm-delete-sub').textContent=sub;
+  document.getElementById('confirm-delete-btn').onclick=()=>{fn();hideModal('modal-confirm-delete');};
+  showModal('modal-confirm-delete');
+}
+
+// ══ ADD TRUCK / ORDER ════════════════════════════════════
+function addTruck(){
+  const name=document.getElementById('new-truck-name').value.trim();if(!name)return;
+  state.trucks.unshift({id:Date.now(),name,priority:'mid',archived:false,discounts:[],orders:[]});
+  hideModal('modal-add-truck');document.getElementById('new-truck-name').value='';
+  renderMain();checkUrgency();
+}
+function addOrder(){
+  const num=document.getElementById('new-order-num').value.trim();
+  const name=document.getElementById('new-order-name').value.trim();if(!name)return;
+  const notes=document.getElementById('new-order-notes').value.trim();
+  const priority=document.getElementById('new-order-priority').value;
+  const urgency=document.getElementById('new-order-urgency').value;
+  const deferredUntil=urgency==='deferred'?getDeferredDate():null;
+  const t=getTruck();if(!t)return;
+  t.orders.unshift({id:Date.now(),num:num||'—',name,notes,priority,urgency,deferredUntil,status:'order',days:0,items:[],suppliers:[],files:[]});
+  hideModal('modal-add-order');
+  ['new-order-num','new-order-name','new-order-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('new-order-urgency').value='normal';
+  document.getElementById('deferred-date-group').style.display='none';
+  renderOrders(t);checkUrgency();
+}
+
+// ══ URGENCY ENGINE ════════════════════════════════════════
+// "Закрыта" = статус confirmed и выше
+const CLOSED_STATUSES=['confirmed','po','transit','delivered','closed'];
+function isOrderClosed(o){return CLOSED_STATUSES.includes(o.status);}
+function isOrderDeferred(o){return o.urgency==='deferred';}
+
+function getUrgentTrucks(){
+  const now=Date.now();
+  const urgent=[];
+  state.trucks.filter(t=>!t.archived).forEach(t=>{
+    // get next movement date
+    const nextMov=state.movements
+      .filter(m=>m.truckId===t.id&&m.date)
+      .map(m=>({...m,ts:new Date(m.date+' 12:00').getTime()}))
+      .filter(m=>m.ts>=now)
+      .sort((a,b)=>a.ts-b.ts)[0];
+    if(!nextMov)return;
+    const daysUntil=(nextMov.ts-now)/(1000*60*60*24);
+    if(daysUntil>3)return; // more than 3 days — no alarm
+    const openOrders=t.orders.filter(o=>!isOrderClosed(o)&&!isOrderDeferred(o));
+    if(openOrders.length>0){
+      urgent.push({truck:t,daysUntil:Math.ceil(daysUntil),openOrders,nextMov});
+    }
+  });
+  return urgent;
+}
+
+let bannerDismissed=false;
+function checkUrgency(){
+  const urgent=getUrgentTrucks();
+  // update truck cards visual
+  document.querySelectorAll('.truck-card').forEach(card=>{
+    card.classList.remove('top-urgent');
+  });
+  // shake + glow urgent cards, show banner
+  if(urgent.length>0&&!bannerDismissed){
+    const banner=document.getElementById('urgent-banner');
+    const first=urgent[0];
+    const dLabel=first.daysUntil<=0?'СЕГОДНЯ':first.daysUntil===1?'1 день':first.daysUntil+'д';
+    document.getElementById('banner-text').textContent=`🚨 TOP URGENT · ${first.truck.name}`;
+    document.getElementById('banner-sub').textContent=`${first.openOrders.length} открытых заявок · подход через ${dLabel}`;
+    banner.classList.add('show');
+  } else {
+    document.getElementById('urgent-banner').classList.remove('show');
+  }
+  // re-render main to apply top-urgent class
+  renderMain();
+}
+
+function dismissBanner(){
+  bannerDismissed=true;
+  document.getElementById('urgent-banner').classList.remove('show');
+  // re-enable after 30 min
+  setTimeout(()=>{bannerDismissed=false;checkUrgency();},30*60*1000);
+}
+
+// urgency score per truck (used in renderMain sorting + card class)
+function getTruckUrgencyLevel(t){
+  const now=Date.now();
+  const nextMov=state.movements
+    .filter(m=>m.truckId===t.id&&m.date)
+    .map(m=>({...m,ts:new Date(m.date+' 12:00').getTime()}))
+    .filter(m=>m.ts>=now)
+    .sort((a,b)=>a.ts-b.ts)[0];
+  if(!nextMov)return 'normal';
+  const daysUntil=(nextMov.ts-now)/(1000*60*60*24);
+  const openOrders=t.orders.filter(o=>!isOrderClosed(o)&&!isOrderDeferred(o));
+  if(openOrders.length>0&&daysUntil<=3)return 'top-urgent';
+  return 'normal';
+}
+
+// ══ TABS ═════════════════════════════════════════════════
+function switchTab(el,targetId){
+  document.querySelectorAll('#screen-truck .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['tab-orders','tab-discounts','tab-calendar'].forEach(id=>{document.getElementById(id).style.display=id===targetId?'':'none';});
+  if(targetId==='tab-calendar')renderCalendar();
+}
+
+// ══ NAVIGATION ═══════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+  if(id==='screen-suppliers')renderSuppliersScreen();
+  if(id==='screen-analytics'){renderAnalytics();renderDiscountAnalytics();}
+  if(id==='screen-disc-report')renderDiscReport();
+  if(id==='screen-main'){renderMain();checkUrgency();}
 }
-function goBack(screenId) {
+function goBack(screenId){
   showScreen(screenId);
-  if (screenId === 'screen-main') renderMain();
-  if (screenId === 'screen-truck') {
-    const t = state.trucks.find(x => x.id === state.currentTruckId);
-    if (t) renderOrders(t);
+  if(screenId==='screen-truck'){const t=getTruck();if(t){renderOrders(t);renderDiscounts(t);renderCalendar();}}
+}
+
+// ══ DRAG & DROP ══════════════════════════════════════════
+let dragId=null;
+function dragStart(e,id){dragId=id;setTimeout(()=>e.currentTarget.classList.add('dragging'),0);}
+function dragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
+function dragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function dropTruck(e,targetId){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(dragId===targetId)return;
+  const arr=state.trucks,from=arr.findIndex(t=>t.id===dragId),to=arr.findIndex(t=>t.id===targetId);
+  arr.splice(to,0,arr.splice(from,1)[0]);dragId=null;renderMain();
+}
+document.addEventListener('dragend',()=>{document.querySelectorAll('.truck-card').forEach(c=>c.classList.remove('dragging','drag-over'));dragId=null;});
+
+// ══ TOAST ENGINE ═════════════════════════════════════════
+let toastQueue=[];
+let toastActive=false;
+
+function showToast({type='info',icon='ℹ️',title,sub,persistent=false,duration=15000}){
+  toastQueue.push({type,icon,title,sub,persistent,duration});
+  if(!toastActive)processToastQueue();
+}
+
+function processToastQueue(){
+  if(!toastQueue.length){toastActive=false;return;}
+  toastActive=true;
+  const t=toastQueue.shift();
+  const id='toast-'+Date.now();
+  const container=document.getElementById('toast-container');
+
+  const el=document.createElement('div');
+  el.className=`toast ${t.type}`;
+  el.id=id;
+  el.innerHTML=`
+    <div class="toast-icon">${t.icon}</div>
+    <div class="toast-body">
+      <div class="toast-title">${t.title}</div>
+      ${t.sub?`<div class="toast-sub">${t.sub}</div>`:''}
+      ${!t.persistent?`<div class="toast-progress"><div class="toast-progress-bar" id="${id}-bar" style="width:100%"></div></div>`:''}
+    </div>
+    <button class="toast-close" onclick="dismissToast('${id}')">×</button>`;
+  container.appendChild(el);
+
+  if(!t.persistent){
+    // animate progress bar
+    const bar=document.getElementById(id+'-bar');
+    if(bar){
+      bar.style.transition=`width ${t.duration}ms linear`;
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.width='0%';}));
+    }
+    setTimeout(()=>dismissToast(id),t.duration);
   }
 }
 
-// ── DRAG & DROP (trucks) ──────────────────────────────
-let dragId = null;
-function dragStart(e, id) { dragId = id; e.currentTarget.classList.add('dragging'); }
-function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-function dropTruck(e, targetId) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  if (dragId === targetId) return;
-  const arr = state.trucks;
-  const from = arr.findIndex(t => t.id === dragId);
-  const to = arr.findIndex(t => t.id === targetId);
-  arr.splice(to, 0, arr.splice(from, 1)[0]);
-  dragId = null;
-  renderMain();
+function dismissToast(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.animation='toastOut .2s ease forwards';
+  setTimeout(()=>{
+    el.remove();
+    // small gap before next
+    setTimeout(()=>processToastQueue(),300);
+  },200);
 }
-document.addEventListener('dragend', () => {
-  document.querySelectorAll('.truck-card').forEach(c => c.classList.remove('dragging','drag-over'));
+
+// ══ NOTIFICATION CHECKS ══════════════════════════════════
+const STALE_DAYS=3; // залипание
+let notifCooldown={}; // id→timestamp, чтобы не спамить
+
+function shouldNotify(key,cooldownMs=5*60*1000){
+  const now=Date.now();
+  if(notifCooldown[key]&&now-notifCooldown[key]<cooldownMs)return false;
+  notifCooldown[key]=now;
+  return true;
+}
+
+function runNotificationChecks(){
+  const now=Date.now();
+  state.trucks.filter(t=>!t.archived).forEach(t=>{
+    t.orders.forEach(o=>{
+      if(isOrderDeferred(o)){
+        // check if deferred period expired
+        if(o.deferredUntil){
+          const due=new Date(o.deferredUntil+' 12:00').getTime();
+          if(now>=due&&shouldNotify(`deferred-${o.id}`,60*60*1000)){
+            showToast({type:'deferred',icon:'🕐',title:`Пора заняться · ${t.name}`,
+              sub:`«${o.name}» — срок отсрочки истёк`,persistent:false,duration:15000});
+          }
+        }
+        return; // остальные проверки для отложенных не делаем
+      }
+      if(isOrderClosed(o))return;
+
+      // 1. Залипла в статусе 3+ дней
+      if(o.days>=STALE_DAYS&&shouldNotify(`stale-${o.id}-${o.status}`,4*60*60*1000)){
+        showToast({type:'warning',icon:'⏳',title:`Залипла · ${t.name}`,
+          sub:`«${o.name}» — ${o.days}д в статусе «${STATUS_LABELS[o.status]}»`,
+          persistent:false,duration:15000});
+      }
+
+      // 2. Не расценена 2+ дней (статус order без движения)
+      if(o.status==='order'&&o.days>=2&&shouldNotify(`unpriced-${o.id}`,4*60*60*1000)){
+        showToast({type:'warning',icon:'💰',title:`Не расценена · ${t.name}`,
+          sub:`«${o.name}» — создана ${o.days}д назад, цены не запрошены`,
+          persistent:false,duration:15000});
+      }
+
+      // 3. Ни одному поставщику не отправлено (статус pricing 2+ дней)
+      if(o.status==='pricing'&&o.days>=2){
+        const anySent=(o.suppliers||[]).some(s=>s.sent);
+        if(!anySent&&shouldNotify(`unsent-${o.id}`,4*60*60*1000)){
+          showToast({type:'warning',icon:'📨',title:`Не отправлено · ${t.name}`,
+            sub:`«${o.name}» — ни один поставщик не получил запрос`,
+            persistent:false,duration:15000});
+        }
+      }
+
+      // 4. PO создан но DN не получен — напоминать каждые 3 дня
+      if((o.status==='po'||o.status==='transit')&&o.days>=STALE_DAYS){
+        const label=o.status==='po'?'PO создан, ждём отправки':'В пути';
+        if(shouldNotify(`transit-${o.id}-${o.days}`,6*60*60*1000)){
+          showToast({type:'info',icon:'🚛',title:`${label} · ${t.name}`,
+            sub:`«${o.name}» — ${o.days}д без DN. Уточни у поставщика.`,
+            persistent:false,duration:15000});
+        }
+      }
+    });
+
+    // 4. TOP URGENT — открытые заявки и <3 дней до подхода → auto-close 15s, cooldown 1 hour
+    if(getTruckUrgencyLevel(t)==='top-urgent'&&shouldNotify(`urgent-${t.id}`,60*60*1000)){
+      const nextMov=state.movements
+        .filter(m=>m.truckId===t.id&&m.date)
+        .map(m=>({...m,ts:new Date(m.date+' 12:00').getTime()}))
+        .filter(m=>m.ts>=now).sort((a,b)=>a.ts-b.ts)[0];
+      const openN=t.orders.filter(o=>!isOrderClosed(o)&&!isOrderDeferred(o)).length;
+      const dLabel=nextMov?Math.ceil((nextMov.ts-now)/(1000*60*60*24))+'д':'скоро';
+      showToast({type:'urgent',icon:'🚨',title:`TOP URGENT · ${t.name}`,
+        sub:`${openN} незакрытых заявок · подход через ${dLabel}`,
+        persistent:false,duration:15000});
+    }
+  });
+}
+
+// ══ DEFERRED DATE ════════════════════════════════════════
+function toggleDeferredDate(val){
+  const grp=document.getElementById('deferred-date-group');
+  grp.style.display=val==='deferred'?'':'none';
+  if(val!=='deferred'){
+    document.getElementById('new-order-deferred-preset').value='';
+    document.getElementById('new-order-deferred-date').style.display='none';
+    document.getElementById('deferred-preview').textContent='';
+  }
+}
+function applyDeferredPreset(val){
+  const dateInput=document.getElementById('new-order-deferred-date');
+  const preview=document.getElementById('deferred-preview');
+  if(!val){dateInput.style.display='none';preview.textContent='';return;}
+  if(val==='custom'){dateInput.style.display='';preview.textContent='';return;}
+  const d=new Date();
+  const months={'1m':1,'2m':2,'3m':3,'6m':6};
+  d.setMonth(d.getMonth()+(months[val]||1));
+  const iso=d.toISOString().split('T')[0];
+  dateInput.value=iso;
+  dateInput.style.display='none';
+  preview.textContent='Напомню: '+d.toLocaleDateString('ru',{day:'numeric',month:'long',year:'numeric'});
+}
+function getDeferredDate(){
+  const preset=document.getElementById('new-order-deferred-preset').value;
+  if(!preset||preset==='')return null;
+  return document.getElementById('new-order-deferred-date').value||null;
+}
+
+// ══ ANALYTICS ════════════════════════════════════════════
+// ══ ANALYTICS TABS ══════════════════════════════════════
+function switchAnalyticsTab(tab){
+  document.querySelectorAll('.screen#screen-analytics .tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('atab-'+tab).classList.add('active');
+  document.getElementById('analytics-content').style.display=tab==='orders'?'':'none';
+  document.getElementById('analytics-disc-content').style.display=tab==='discounts'?'':'none';
+  if(tab==='discounts')renderDiscountAnalytics();
+}
+
+function renderDiscountAnalytics(){
+  const el=document.getElementById('analytics-disc-content');if(!el)return;
+
+  // collect all discounts
+  const all=[];
+  state.trucks.forEach(t=>t.discounts.forEach(d=>all.push({...d,truckName:t.name,truckColor:getTruckColor(t)})));
+
+  if(!all.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">💰</div>Скидок нет.<br>Добавь первую в разделе трака.</div>';
+    return;
+  }
+
+  const totalAmount=all.reduce((s,d)=>s+(d.amount||0),0);
+  const totalMine=all.reduce((s,d)=>s+(d.mine||0),0);
+
+  // by supplier
+  const bySupplier={};
+  all.forEach(d=>{
+    const key=d.supplier||'—';
+    if(!bySupplier[key])bySupplier[key]={amount:0,mine:0,count:0,trucks:new Set()};
+    bySupplier[key].amount+=d.amount||0;
+    bySupplier[key].mine+=d.mine||0;
+    bySupplier[key].count++;
+    bySupplier[key].trucks.add(d.truckName);
+  });
+  const supEntries=Object.entries(bySupplier).sort((a,b)=>b[1].mine-a[1].mine);
+  const maxSupMine=Math.max(...supEntries.map(([,v])=>v.mine),1);
+
+  // by truck
+  const byTruck={};
+  all.forEach(d=>{
+    const key=d.truckName||'—';
+    if(!byTruck[key])byTruck[key]={amount:0,mine:0,count:0,color:d.truckColor};
+    byTruck[key].amount+=d.amount||0;
+    byTruck[key].mine+=d.mine||0;
+    byTruck[key].count++;
+  });
+  const truckEntries=Object.entries(byTruck).sort((a,b)=>b[1].mine-a[1].mine);
+  const maxTruckMine=Math.max(...truckEntries.map(([,v])=>v.mine),1);
+
+  // by quarter
+  const byQ={};
+  all.forEach(d=>{
+    const q=d.quarter||'—';
+    if(!byQ[q])byQ[q]={amount:0,mine:0,count:0};
+    byQ[q].amount+=d.amount||0;byQ[q].mine+=d.mine||0;byQ[q].count++;
+  });
+  const qEntries=Object.entries(byQ).sort((a,b)=>b[0].localeCompare(a[0]));
+
+  const summaryCards=
+    '<div class="stat-grid" style="margin-bottom:16px">'+
+      '<div class="stat-card"><div class="stat-label">Скидок выбито</div><div class="stat-value">'+all.length+'</div><div class="stat-sub">по '+Object.keys(byTruck).length+' тракам</div></div>'+
+      '<div class="stat-card"><div class="stat-label">Сумма скидок</div><div class="stat-value" style="color:var(--green)">$'+totalAmount.toLocaleString(undefined,{maximumFractionDigits:0})+'</div><div class="stat-sub">выбито у поставщиков</div></div>'+
+      '<div class="stat-card"><div class="stat-label">Твой заработок</div><div class="stat-value" style="color:var(--accent)">$'+totalMine.toFixed(0)+'</div><div class="stat-sub">10% от скидок</div></div>'+
+      '<div class="stat-card"><div class="stat-label">Поставщиков</div><div class="stat-value" style="color:var(--blue)">'+Object.keys(bySupplier).length+'</div><div class="stat-sub">работал со скидками</div></div>'+
+    '</div>';
+
+  const supSection=
+    '<div class="detail-section" style="margin-bottom:10px">'+
+      '<div class="detail-section-header">По поставщикам</div>'+
+      '<div class="detail-section-body" style="padding-top:8px;padding-bottom:8px">'+
+        supEntries.map(([sup,v])=>
+          '<div class="bar-row">'+
+            '<div style="min-width:0;flex:1">'+
+              '<div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sup+'</div>'+
+              '<div style="font-size:10px;color:var(--text3)">'+v.count+' скид · '+[...v.trucks].join(', ')+'</div>'+
+            '</div>'+
+            '<div class="bar-track" style="max-width:80px"><div class="bar-fill green" style="width:'+Math.round(v.mine/maxSupMine*100)+'%"></div></div>'+
+            '<div style="text-align:right;min-width:52px">'+
+              '<div style="font-size:12px;font-weight:700;color:var(--accent)">$'+v.mine.toFixed(0)+'</div>'+
+              '<div style="font-size:10px;color:var(--text3)">$'+v.amount.toFixed(0)+' скидки</div>'+
+            '</div>'+
+          '</div>'
+        ).join('')+
+      '</div>'+
+    '</div>';
+
+  const truckSection=
+    '<div class="detail-section" style="margin-bottom:10px">'+
+      '<div class="detail-section-header">По тракам</div>'+
+      '<div class="detail-section-body" style="padding-top:8px;padding-bottom:8px">'+
+        truckEntries.map(([name,v])=>
+          '<div class="bar-row">'+
+            '<div style="min-width:80px;font-size:12px;font-weight:500;color:'+v.color+'">'+name+'</div>'+
+            '<div class="bar-track"><div class="bar-fill" style="width:'+Math.round(v.mine/maxTruckMine*100)+'%;background:'+v.color+'"></div></div>'+
+            '<div style="text-align:right;min-width:52px">'+
+              '<div style="font-size:12px;font-weight:700;color:var(--accent)">$'+v.mine.toFixed(0)+'</div>'+
+              '<div style="font-size:10px;color:var(--text3)">'+v.count+' скидок</div>'+
+            '</div>'+
+          '</div>'
+        ).join('')+
+      '</div>'+
+    '</div>';
+
+  const qSection=
+    '<div class="detail-section">'+
+      '<div class="detail-section-header">По кварталам</div>'+
+      '<div class="detail-section-body" style="padding:0 14px">'+
+        qEntries.map(([q,v])=>
+          '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">'+
+            '<div>'+
+              '<div style="font-size:13px;font-weight:600">'+q+'</div>'+
+              '<div style="font-size:11px;color:var(--text3)">'+v.count+' скидок · выбито $'+v.amount.toFixed(0)+'</div>'+
+            '</div>'+
+            '<div style="font-size:16px;font-weight:700;color:var(--accent)">$'+v.mine.toFixed(0)+'</div>'+
+          '</div>'
+        ).join('')+
+      '</div>'+
+    '</div>';
+
+  el.innerHTML=summaryCards+supSection+truckSection+qSection;
+}
+
+function renderAnalytics(){
+  const el=document.getElementById('analytics-content');if(!el)return;
+  const days=parseInt(document.getElementById('analytics-period').value)||0;
+  const cutoff=days?Date.now()-days*86400000:0;
+  const allOrders=[];
+  state.trucks.forEach(t=>t.orders.forEach(o=>allOrders.push({...o,truckName:t.name,truckId:t.id})));
+  const filtered=allOrders.filter(o=>!cutoff||((o.createdAt||0)>=cutoff));
+  const total=filtered.length;
+  const closed=filtered.filter(o=>isOrderClosed(o)).length;
+  const open=filtered.filter(o=>!isOrderClosed(o)&&!isOrderDeferred(o)).length;
+  const deferred=filtered.filter(o=>isOrderDeferred(o)).length;
+  const pct=total?Math.round(closed/total*100):0;
+  const closedWithDays=filtered.filter(o=>isOrderClosed(o)&&o.days>0);
+  const avgDays=closedWithDays.length?Math.round(closedWithDays.reduce((s,o)=>s+o.days,0)/closedWithDays.length):0;
+  const perTruck=state.trucks.filter(t=>!t.archived).map(t=>({name:t.name,total:t.orders.length,open:t.orders.filter(o=>!isOrderClosed(o)&&!isOrderDeferred(o)).length})).sort((a,b)=>b.total-a.total).slice(0,6);
+  const maxTruck=Math.max(...perTruck.map(x=>x.total),1);
+  const statusBreakdown=PIPELINE.map(s=>({label:STATUS_LABELS[s.key],key:s.key,count:filtered.filter(o=>o.status===s.key).length})).filter(x=>x.count>0);
+  const maxStatus=Math.max(...statusBreakdown.map(x=>x.count),1);
+  const allDiscs=[];
+  state.trucks.forEach(t=>t.discounts.forEach(d=>allDiscs.push({...d,truckName:t.name,color:getTruckColor(t)})));
+  const totalDiscAmount=allDiscs.reduce((s,d)=>s+d.amount,0);
+  const totalMyShare=allDiscs.reduce((s,d)=>s+d.mine,0);
+
+  // discounts by truck
+  const discByTruck=state.trucks.filter(t=>t.discounts.length).map(t=>({
+    name:t.name,
+    color:getTruckColor(t),
+    amount:t.discounts.reduce((s,d)=>s+d.amount,0),
+    mine:t.discounts.reduce((s,d)=>s+d.mine,0),
+    count:t.discounts.length
+  })).sort((a,b)=>b.mine-a.mine);
+  const maxDisc=Math.max(...discByTruck.map(x=>x.mine),1);
+
+  // discounts by quarter
+  const discByQ={};
+  allDiscs.forEach(d=>{
+    const q=d.quarter||'—';
+    if(!discByQ[q])discByQ[q]={amount:0,mine:0,count:0};
+    discByQ[q].amount+=d.amount;discByQ[q].mine+=d.mine;discByQ[q].count++;
+  });
+  const qEntries=Object.entries(discByQ).sort((a,b)=>b[0].localeCompare(a[0]));
+
+  // build HTML parts without nested template literals
+  const statGrid='<div class="stat-grid">'+
+    '<div class="stat-card"><div class="stat-label">Всего заявок</div><div class="stat-value">'+total+'</div><div class="stat-sub">'+open+' открытых · '+deferred+' отложенных</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Закрыто</div><div class="stat-value" style="color:var(--green)">'+pct+'%</div><div class="stat-sub">'+closed+' из '+total+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Среднее время</div><div class="stat-value" style="color:var(--blue)">'+avgDays+'д</div><div class="stat-sub">от создания до закрытия</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Твои скидки</div><div class="stat-value" style="color:var(--accent)">$'+totalMyShare.toFixed(0)+'</div><div class="stat-sub">'+allDiscs.length+' скидок · $'+totalDiscAmount.toFixed(0)+' выбито</div></div>'+
+  '</div>';
+
+  const truckRows=perTruck.map(t=>
+    '<div class="bar-row">'+
+      '<div class="bar-label" style="font-size:11px">'+t.name+'</div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+Math.round(t.total/maxTruck*100)+'%"></div></div>'+
+      '<div class="bar-val">'+t.total+'</div>'+
+    '</div>'
+  ).join('')||'<div style="color:var(--text3);font-size:12px">Нет данных</div>';
+
+  const statusRows=statusBreakdown.map(s=>
+    '<div class="bar-row">'+
+      '<div class="bar-label" style="font-size:11px">'+s.label+'</div>'+
+      '<div class="bar-track"><div class="bar-fill blue" style="width:'+Math.round(s.count/maxStatus*100)+'%"></div></div>'+
+      '<div class="bar-val">'+s.count+'</div>'+
+    '</div>'
+  ).join('')||'<div style="color:var(--text3);font-size:12px">Нет данных</div>';
+
+  const discSection=allDiscs.length?(
+    '<div class="detail-section">'+
+      '<div class="detail-section-header" style="display:flex;justify-content:space-between">'+
+        '<span>Скидки по тракам</span>'+
+        '<span style="color:var(--accent);font-weight:700">Итого: $'+totalMyShare.toFixed(0)+'</span>'+
+      '</div>'+
+      '<div class="detail-section-body" style="padding-top:8px;padding-bottom:8px">'+
+        discByTruck.map(t=>
+          '<div class="bar-row">'+
+            '<div class="bar-label" style="font-size:11px;color:'+t.color+'">'+t.name+'</div>'+
+            '<div class="bar-track"><div class="bar-fill" style="width:'+Math.round(t.mine/maxDisc*100)+'%;background:'+t.color+'"></div></div>'+
+            '<div style="text-align:right;min-width:60px">'+
+              '<div class="bar-val" style="color:var(--accent)">$'+t.mine.toFixed(0)+'</div>'+
+              '<div style="font-size:10px;color:var(--text3)">'+t.count+' скид.</div>'+
+            '</div>'+
+          '</div>'
+        ).join('')+
+      '</div>'+
+    '</div>'+
+    '<div class="detail-section">'+
+      '<div class="detail-section-header">Скидки по кварталам</div>'+
+      '<div class="detail-section-body" style="padding:0 14px">'+
+        qEntries.map(([q,d])=>
+          '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">'+
+            '<div>'+
+              '<div style="font-size:13px;font-weight:600">'+q+'</div>'+
+              '<div style="font-size:11px;color:var(--text3)">'+d.count+' скидок · выбито $'+d.amount.toFixed(0)+'</div>'+
+            '</div>'+
+            '<div style="font-size:16px;font-weight:700;color:var(--accent)">$'+d.mine.toFixed(0)+'</div>'+
+          '</div>'
+        ).join('')+
+      '</div>'+
+    '</div>'
+  ):'';
+
+  el.innerHTML=statGrid+
+    '<div class="detail-section"><div class="detail-section-header">Заявки по тракам</div><div class="detail-section-body" style="padding-top:8px;padding-bottom:8px">'+truckRows+'</div></div>'+
+    '<div class="detail-section"><div class="detail-section-header">По статусам</div><div class="detail-section-body" style="padding-top:8px;padding-bottom:8px">'+statusRows+'</div></div>'+
+    discSection;
+}
+
+// ══ SEARCH ═══════════════════════════════════════════════
+function openSearch(){
+  showModal('modal-search');
+  setTimeout(()=>{
+    const inp=document.getElementById('search-input');
+    if(inp){inp.value='';inp.focus();renderSearchResults('');}
+  },50);
+}
+function highlight(text,q){
+  if(!q)return text;
+  const idx=text.toLowerCase().indexOf(q.toLowerCase());
+  if(idx<0)return text;
+  return text.slice(0,idx)+`<span class="search-highlight">${text.slice(idx,idx+q.length)}</span>`+text.slice(idx+q.length);
+}
+function renderSearchResults(q){
+  const el=document.getElementById('search-results');if(!el)return;
+  q=q.trim();
+  if(!q){
+    el.innerHTML=`<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px 0">Начни вводить...</div>`;
+    return;
+  }
+  const ql=q.toLowerCase();
+  const results=[];
+
+  // search trucks
+  state.trucks.forEach(t=>{
+    if(t.name.toLowerCase().includes(ql)){
+      results.push({type:'truck',icon:'🚛',bg:'var(--accent-dim)',title:t.name,
+        sub:`${t.orders.filter(o=>!isOrderClosed(o)).length} активных заявок`,
+        action:()=>{hideModal('modal-search');openTruck(t.id);}});
+    }
+    // search orders
+    t.orders.forEach(o=>{
+      if(o.name.toLowerCase().includes(ql)||o.num.toLowerCase().includes(ql)||
+         (o.items||[]).some(i=>i.name.toLowerCase().includes(ql))){
+        results.push({type:'order',icon:'📋',bg:'var(--blue-dim)',
+          title:highlight(o.name,q),sub:`${t.name} · ${STATUS_LABELS[o.status]} · ${highlight(o.num,q)}`,
+          action:()=>{hideModal('modal-search');openOrder(t.id,o.id);}});
+      }
+    });
+  });
+  // search suppliers
+  state.supplierDir.forEach(c=>{
+    c.suppliers.forEach(s=>{
+      if(s.name.toLowerCase().includes(ql)||c.country.toLowerCase().includes(ql)){
+        results.push({type:'supplier',icon:'🌍',bg:'var(--green-dim)',
+          title:highlight(s.name,q),sub:`${c.country}${s.email?' · '+s.email:''}`,
+          action:()=>{hideModal('modal-search');showScreen('screen-suppliers');}});
+      }
+    });
+  });
+
+  if(!results.length){
+    el.innerHTML=`<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px 0">Ничего не найдено</div>`;
+    return;
+  }
+  el.innerHTML=results.slice(0,12).map((r,i)=>`
+    <div class="search-result" onclick="searchResultClick(${i})">
+      <div class="search-result-icon" style="background:${r.bg}">${r.icon}</div>
+      <div>
+        <div class="search-result-title">${r.title}</div>
+        <div class="search-result-sub">${r.sub}</div>
+      </div>
+    </div>`).join('');
+  // store actions
+  window._searchActions=results.slice(0,12).map(r=>r.action);
+}
+function searchResultClick(i){
+  if(window._searchActions&&window._searchActions[i])window._searchActions[i]();
+}
+
+// ══ KEYBOARD SHORTCUTS ═══════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){
+    e.preventDefault();openSearch();return;
+  }
+
+  // ignore if typing in input/textarea
+  const tag=document.activeElement.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+
+  const openModal=document.querySelector('.modal-overlay.open');
+
+  if(e.key==='Escape'){
+    if(openModal){hideModal(openModal.id);return;}
+    // go back
+    const screens=['screen-order','screen-truck','screen-suppliers'];
+    for(const s of screens){
+      if(document.getElementById(s).classList.contains('active')){
+        if(s==='screen-order')goBack('screen-truck');
+        else goBack('screen-main');
+        return;
+      }
+    }
+  }
+
+  if(e.key==='n'||e.key==='N'){
+    if(document.getElementById('screen-truck').classList.contains('active')){
+      e.preventDefault();showModal('modal-add-order');
+    }
+  }
+
+  if(e.key==='Enter'||e.key==='ArrowRight'){
+    if(document.getElementById('screen-order').classList.contains('active')&&!openModal){
+      e.preventDefault();
+      const o=getOrder();
+      if(o&&o.status!=='pricing')advancePipeline();
+    }
+  }
+
+  if(e.key==='Backspace'||e.key==='ArrowLeft'){
+    if(document.getElementById('screen-order').classList.contains('active')&&!openModal){
+      e.preventDefault();rollbackPipeline();
+    }
+  }
 });
 
-// ── INIT ──────────────────────────────────────────────
-renderMain();
+// ══ TOUCH SWIPE ON ORDER CARDS ════════════════════════════
+function addSwipeToCard(el,onSwipeLeft,onSwipeRight){
+  let startX=0,startY=0,moved=false;
+  el.addEventListener('touchstart',e=>{
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false;
+  },{passive:true});
+  el.addEventListener('touchmove',e=>{
+    const dx=e.touches[0].clientX-startX;
+    const dy=Math.abs(e.touches[0].clientY-startY);
+    if(dy>20)return; // vertical scroll, ignore
+    if(Math.abs(dx)>10){moved=true;e.preventDefault();}
+    if(Math.abs(dx)>30){
+      el.style.transform=`translateX(${dx*0.4}px)`;
+      el.style.opacity=Math.max(0.5,1-Math.abs(dx)/300);
+    }
+  },{passive:false});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-startX;
+    el.style.transform='';el.style.opacity='';
+    if(!moved)return;
+    if(dx<-60){onSwipeLeft();}
+    else if(dx>60){onSwipeRight();}
+  });
+}
+
+function attachSwipesToOrders(t){
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.order-card').forEach(card=>{
+      const onclick=card.getAttribute('onclick')||'';
+      const m=onclick.match(/openOrder\((\d+),(\d+)\)/);
+      if(!m)return;
+      const truckId=parseInt(m[1]),orderId=parseInt(m[2]);
+      const o=t.orders.find(x=>x.id===orderId);
+      if(!o)return;
+      addSwipeToCard(card,
+        // swipe left = delete
+        ()=>confirmDelete(`Удалить «${o.name}»?`,'Это действие нельзя отменить.',()=>{
+          t.orders=t.orders.filter(x=>x.id!==orderId);
+          renderOrders(t);checkUrgency();
+        }),
+        // swipe right = open
+        ()=>openOrder(truckId,orderId)
+      );
+    });
+  });
+}
+
+// ══ FIREBASE + AES-256 SYNC ══════════════════════════════
+// Config
+const FB_URL='https://abetca-default-rtdb.firebaseio.com';
+const FB_KEY='supply_os/data';
+// AES-256 encryption key — this never leaves your device
+// Change this to any secret phrase you want — same on all your devices
+const ENC_PASSWORD='SupplyOS_abetca_2024_secret_key_change_me';
+
+// ── AES-256-GCM using WebCrypto (built into every browser) ──
+async function deriveKey(password){
+  const enc=new TextEncoder();
+  const keyMaterial=await crypto.subtle.importKey('raw',enc.encode(password),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:enc.encode('supply_os_salt_v1'),iterations:100000,hash:'SHA-256'},
+    keyMaterial,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
+  );
+}
+async function encrypt(data){
+  const key=await deriveKey(ENC_PASSWORD);
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const enc=new TextEncoder();
+  const ciphertext=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(JSON.stringify(data)));
+  const buf=new Uint8Array(iv.byteLength+ciphertext.byteLength);
+  buf.set(iv,0);buf.set(new Uint8Array(ciphertext),iv.byteLength);
+  return btoa(String.fromCharCode(...buf));
+}
+async function decrypt(b64){
+  const key=await deriveKey(ENC_PASSWORD);
+  const buf=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const iv=buf.slice(0,12),ciphertext=buf.slice(12);
+  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ciphertext);
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+// ── Firebase REST API (no SDK needed) ──
+let syncTimer=null;
+let lastSyncHash='';
+let syncStatus='idle'; // idle | saving | loading | error
+
+function setSyncIndicator(status){
+  syncStatus=status;
+  const el=document.getElementById('sync-indicator');
+  if(!el)return;
+  const map={idle:'● синк',saving:'↑ сохраняю...',loading:'↓ загружаю...',error:'⚠ ошибка синка'};
+  const col={idle:'var(--text3)',saving:'var(--accent)',loading:'var(--blue)',error:'var(--red)'};
+  el.textContent=map[status]||'';
+  el.style.color=col[status]||'var(--text3)';
+}
+
+async function saveToFirebase(){
+  try{
+    setSyncIndicator('saving');
+    const data={trucks:state.trucks,movements:state.movements,supplierDir:state.supplierDir};
+    const encrypted=await encrypt(data);
+    const hash=btoa(encrypted.slice(0,40));
+    if(hash===lastSyncHash){setSyncIndicator('idle');return;}
+    const res=await fetch(`${FB_URL}/${FB_KEY}.json`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({v:1,ts:Date.now(),d:encrypted})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    lastSyncHash=hash;
+    setSyncIndicator('idle');
+    // also keep localStorage as offline backup
+    localStorage.setItem('supply_os_state',JSON.stringify(data));
+  }catch(e){
+    setSyncIndicator('error');
+    console.error('Firebase save error:',e);
+    // fallback to localStorage
+    try{localStorage.setItem('supply_os_state',JSON.stringify({trucks:state.trucks,movements:state.movements,supplierDir:state.supplierDir}));}catch(_){}
+  }
+}
+
+function scheduleSave(){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(saveToFirebase,1200); // debounce 1.2s
+}
+
+async function loadFromFirebase(){
+  setSyncIndicator('loading');
+  try{
+    const res=await fetch(`${FB_URL}/${FB_KEY}.json`);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const raw=await res.json();
+    if(raw&&raw.d){
+      const data=await decrypt(raw.d);
+      if(data.trucks)state.trucks=data.trucks;
+      if(data.movements)state.movements=data.movements;
+      if(data.supplierDir)state.supplierDir=data.supplierDir;
+      localStorage.setItem('supply_os_state',JSON.stringify(data));
+      lastSyncHash=btoa(raw.d.slice(0,40));
+      setSyncIndicator('idle');
+      return true;
+    }
+    setSyncIndicator('idle');
+    return false;
+  }catch(e){
+    setSyncIndicator('error');
+    console.error('Firebase load error:',e);
+    return false;
+  }
+}
+
+// ── Poll for changes every 8 seconds (realtime-ish) ──
+async function pollFirebase(){
+  try{
+    const res=await fetch(`${FB_URL}/${FB_KEY}.json`);
+    if(!res.ok)return;
+    const raw=await res.json();
+    if(!raw||!raw.d)return;
+    const hash=btoa(raw.d.slice(0,40));
+    if(hash===lastSyncHash)return; // no change
+    // remote is newer — load it
+    const data=await decrypt(raw.d);
+    if(data.trucks)state.trucks=data.trucks;
+    if(data.movements)state.movements=data.movements;
+    if(data.supplierDir)state.supplierDir=data.supplierDir;
+    lastSyncHash=hash;
+    // re-render current screen
+    const active=document.querySelector('.screen.active');
+    if(active){
+      if(active.id==='screen-main')renderMain();
+      if(active.id==='screen-truck'){const t=getTruck();if(t){renderOrders(t);renderDiscounts(t);renderCalendar();}}
+    }
+    showToast({type:'info',icon:'🔄',title:'Данные обновлены',sub:'Синхронизировано с другого устройства',duration:4000});
+  }catch(e){}
+}
+
+// ── Auto-save hook — wrap all mutating functions ──
+['addTruck','addOrder','addDiscount','addMovement','addSupplierGlobal',
+ 'addCountry','removeDiscount','removeMovement','advancePipeline','rollbackPipeline',
+ 'attachFiles','removeFile','addItem','removeItem','toggleSupplierSent',
+ 'removeSupplier','addSupplierToOrder','pickAddCountry','pickRemoveCountry',
+ 'pickAddSupplier','pickRemoveSupplier','confirmPickSuppliers','confirmDelete'
+].forEach(fn=>{
+  const orig=window[fn];
+  if(typeof orig==='function'){
+    window[fn]=function(){const r=orig.apply(this,arguments);scheduleSave();return r;};
+  }
+});
+
+// ── BOOT ──
+async function boot(){
+  // restore font size preference
+  try{const fs=localStorage.getItem('supply_os_fontsize');if(fs)setFontSize(fs);}catch(_){}
+  // try Firebase first, fallback to localStorage
+  const loaded=await loadFromFirebase();
+  if(!loaded){
+    try{
+      const raw=localStorage.getItem('supply_os_state');
+      if(raw){const s=JSON.parse(raw);if(s.trucks)state.trucks=s.trucks;if(s.movements)state.movements=s.movements;if(s.supplierDir)state.supplierDir=s.supplierDir;}
+    }catch(_){}
+  }
+  renderMain();
+  checkUrgency();
+  setTimeout(runNotificationChecks,3000);
+  setInterval(runNotificationChecks,2*60*1000);
+  setInterval(checkUrgency,60000);
+  setInterval(pollFirebase,8000); // poll every 8s for cross-device sync
+}
+boot();
 </script>
 </body>
 </html>
