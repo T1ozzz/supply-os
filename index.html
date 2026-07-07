@@ -874,11 +874,19 @@ function setFontSize(size){
 }
 
 // ══ TRUCK COLORS ════════════════════════════════════════
-const TC_COLORS=['#5b8dd9','#8b6cb5','#c47e3a','#4caf7d','#a05580','#3a8fa0','#c9a84c','#7a9e3a'];
+const TC_COLORS=['#5b8dd9','#8b6cb5','#c47e3a','#4caf7d','#a05580','#3a8fa0','#c9a84c','#7a9e3a','#d95f5f','#5f9ea0'];
 function getTruckColor(t){
-  // bind to truck ID — stable across reordering
-  const hash=Math.abs(String(t.id).split('').reduce((a,c)=>a*31+c.charCodeAt(0),0));
-  return TC_COLORS[hash%TC_COLORS.length];
+  // use stored color if set
+  if(t.color)return t.color;
+  // assign stable color based on ID
+  const idStr=String(t.id);
+  let hash=0;
+  for(let i=0;i<idStr.length;i++)hash=(hash*31+idStr.charCodeAt(i))&0xffffffff;
+  return TC_COLORS[Math.abs(hash)%TC_COLORS.length];
+}
+function setTruckColor(truckId,color){
+  const t=state.trucks.find(x=>x.id===truckId);
+  if(t){t.color=color;renderMain();scheduleSave();}
 }
 
 // ══ PRIORITY SCORE (5 tiers) ════════════════════════════
@@ -939,6 +947,9 @@ function renderTruckCard(t,allScores){
   const urgentBadge=urgLevel==='top-urgent'?'<span class="badge" style="background:var(--red-dim);color:var(--red)">⚠ &lt;3д</span>':'';
   const urgentLabel=urgLevel==='top-urgent'?' <span style="color:var(--red);font-size:9px;font-weight:700">URGENT</span>':'';
   const movDiv=nextMov?'<div style="font-size:var(--fs-xs);color:'+(daysUntil<=3?'var(--red)':'var(--text3)')+';margin-bottom:8px;font-family:\'JetBrains Mono\',monospace">📍 '+(nextMov.from||'?')+'→'+(nextMov.to||'?')+' · '+(daysUntil===0?'сегодня':daysUntil+'д')+'</div>':'';
+  const colorDot='<label title="Изменить цвет" style="position:absolute;bottom:10px;right:8px;width:14px;height:14px;border-radius:50%;background:'+color+';cursor:pointer;border:2px solid rgba(255,255,255,0.15);display:block;overflow:hidden" onclick="event.stopPropagation()">'+
+    '<input type="color" value="'+color+'" style="opacity:0;width:0;height:0;position:absolute" onchange="setTruckColor('+t.id+',this.value)" onclick="event.stopPropagation()"/>'+
+  '</label>';
   return '<div class="truck-card '+prioClass+'" onclick="openTruck('+t.id+')" style="--tc:'+color+'" draggable="true" ondragstart="dragStart(event,'+t.id+')" ondragover="dragOver(event)" ondrop="dropTruck(event,'+t.id+')" ondragleave="dragLeave(event)">'+
     '<button class="truck-del" title="'+(t.archived?'Удалить':'В архив')+'" onclick="event.stopPropagation();'+deleteAction+'">×</button>'+
     '<div class="truck-priority">'+tierIcon+' '+activeO.length+' заявок</div>'+
@@ -949,7 +960,7 @@ function renderTruckCard(t,allScores){
       (urgentO.length?'<span class="badge badge-red">'+urgentO.length+' срочных</span>':'')+
       urgentBadge+
       (!activeO.length?'<span class="badge badge-gray">чисто</span>':'')+
-    '</div></div>';
+    '</div>'+colorDot+'</div>';
 }
 
 // ══ KANBAN COL NAMES ════════════════════════════════════
@@ -1061,8 +1072,11 @@ function renderKanban(t){
 
     const headerStyle=colDef.color?'color:'+colDef.color:'';
     const delBtn=colDef.custom?'<button onclick="removeCustomCol(\''+colDef.id+'\')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">×</button>':'';
-    return '<div class="kanban-col" ondragover="kanbanDragOver(event,\''+colDef.id+'\')" ondrop="kanbanDrop(event,\''+colDef.id+'\')" ondragleave="kanbanDragLeave(event)">'+
+    const draggable=colDef.custom?'draggable="true" ondragstart="colDragStart(event,\''+colDef.id+'\')" ondragover="colDragOver(event,\''+colDef.id+'\')" ondrop="colDrop(event,\''+colDef.id+'\')"':'';
+    const dragHandle=colDef.custom?'<span style="cursor:grab;color:var(--text3);font-size:12px;opacity:.5;margin-right:2px" title="Перетащить колонку">⠿</span>':'';
+    return '<div class="kanban-col" '+draggable+' ondragover="kanbanDragOver(event,\''+colDef.id+'\')" ondrop="kanbanDrop(event,\''+colDef.id+'\')" ondragleave="kanbanDragLeave(event)">'+
       '<div class="kanban-col-header '+colDef.cls+'" style="gap:4px;'+headerStyle+'">'+
+        dragHandle+
         '<span style="flex:1">'+colDef.label+'</span>'+
         '<button onclick="editColName(\''+colDef.id+'\')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">✏️</button>'+
         delBtn+
@@ -1086,20 +1100,46 @@ function saveCustomCols(truckId,cols){
 function addCustomCol(){
   const t=getTruck();if(!t)return;
   const label=prompt('Название колонки:');
-  if(!label)return;
+  if(!label||!label.trim())return;
   const cols=getCustomCols(t.id);
   const id='custom_'+Date.now();
-  cols.push({id,label,color:'var(--purple)'});
+  cols.push({id,label:label.trim(),color:'var(--purple)'});
   saveCustomCols(t.id,cols);
   renderKanban(t);
 }
 function removeCustomCol(colId){
   const t=getTruck();if(!t)return;
-  // move orders back to wip
   t.orders.forEach(o=>{if(o.kanbanCol===colId)o.kanbanCol='wip';});
   const cols=getCustomCols(t.id).filter(c=>c.id!==colId);
   saveCustomCols(t.id,cols);
   renderKanban(t);scheduleSave();
+}
+
+// Column drag-and-drop
+let dragColId=null;
+function colDragStart(e,colId){
+  dragColId=colId;
+  e.dataTransfer.effectAllowed='move';
+}
+function colDragOver(e,colId){
+  if(!dragColId||dragColId===colId)return;
+  e.preventDefault();
+}
+function colDrop(e,targetColId){
+  e.preventDefault();
+  if(!dragColId||dragColId===targetColId){dragColId=null;return;}
+  const t=getTruck();if(!t)return;
+  const cols=getCustomCols(t.id);
+  // only custom cols can be reordered among themselves
+  // for base cols, just swap orders' kanbanCol
+  const fromIdx=cols.findIndex(c=>c.id===dragColId);
+  const toIdx=cols.findIndex(c=>c.id===targetColId);
+  if(fromIdx>=0&&toIdx>=0){
+    cols.splice(toIdx,0,cols.splice(fromIdx,1)[0]);
+    saveCustomCols(t.id,cols);
+  }
+  dragColId=null;
+  renderKanban(t);
 }
 
 // kanban drag
@@ -1539,7 +1579,7 @@ function renderDiscounts(t){
 }
 function removeDiscount(id){
   const t=getTruck();
-  t.discounts=t.discounts.filter(d=>d.id!==id);
+  t.discounts=t.discounts.filter(d=>String(d.id)!==String(id));
   renderDiscounts(t);scheduleSave();
 }
 
