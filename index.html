@@ -72,12 +72,13 @@
   .truck-card:hover .truck-del{opacity:1;}
   .truck-del:hover{color:var(--red);background:var(--red-dim);}
   /* KANBAN */
-  .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:start;}
-  .kanban-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-  .kanban-col-header{padding:10px 12px;font-size:var(--fs-xs);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .kanban{display:flex;gap:10px;align-items:start;overflow-x:auto;padding-bottom:8px;}
+  .kanban-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;min-width:155px;flex:1;}
+  .kanban-col-header{padding:10px 12px;font-size:var(--fs-xs);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px;}
   .kanban-col-header.col-new{color:var(--blue);}
   .kanban-col-header.col-wip{color:var(--orange);}
   .kanban-col-header.col-done{color:var(--green);}
+  .kanban-col-header.col-custom{color:var(--purple);}
   .kanban-col-body{padding:8px;display:flex;flex-direction:column;gap:6px;min-height:100px;}
   .kanban-col-body.drag-over-col{background:var(--accent-dim);}
   .kanban-card{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 11px;cursor:grab;transition:all .15s;position:relative;}
@@ -92,7 +93,6 @@
   .kanban-card-del{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;}
   .kanban-card:hover .kanban-card-del{opacity:1;}
   .kanban-card-del:hover{color:var(--red);background:var(--red-dim);}
-  @media(max-width:500px){.kanban{grid-template-columns:1fr;}}
 
   .add-card{background:transparent;border:1px dashed var(--border2);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text3);font-size:13px;min-height:76px;width:100%;}
   .add-card:hover{border-color:var(--accent);color:var(--accent);}
@@ -514,32 +514,7 @@ if(sessionStorage.getItem('supply_auth')==='1'){
       <div class="tab" onclick="switchTab(this,'tab-calendar')">Движение</div>
     </div>
     <div id="tab-orders">
-      <div class="kanban" id="kanban-board">
-        <div class="kanban-col" id="col-new" ondragover="kanbanDragOver(event,'new')" ondrop="kanbanDrop(event,'new')" ondragleave="kanbanDragLeave(event)">
-          <div class="kanban-col-header col-new" style="gap:4px">
-            <span id="col-new-label" style="flex:1">Новые</span>
-            <button onclick="editColName('new')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">✏️</button>
-            <span id="col-new-cnt" style="opacity:.5">0</span>
-          </div>
-          <div class="kanban-col-body" id="col-new-body"></div>
-        </div>
-        <div class="kanban-col" id="col-wip" ondragover="kanbanDragOver(event,'wip')" ondrop="kanbanDrop(event,'wip')" ondragleave="kanbanDragLeave(event)">
-          <div class="kanban-col-header col-wip" style="gap:4px">
-            <span id="col-wip-label" style="flex:1">В работе</span>
-            <button onclick="editColName('wip')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">✏️</button>
-            <span id="col-wip-cnt" style="opacity:.5">0</span>
-          </div>
-          <div class="kanban-col-body" id="col-wip-body"></div>
-        </div>
-        <div class="kanban-col" id="col-done" ondragover="kanbanDragOver(event,'done')" ondrop="kanbanDrop(event,'done')" ondragleave="kanbanDragLeave(event)">
-          <div class="kanban-col-header col-done" style="gap:4px">
-            <span id="col-done-label" style="flex:1">Закрыто</span>
-            <button onclick="editColName('done')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">✏️</button>
-            <span id="col-done-cnt" style="opacity:.5">0</span>
-          </div>
-          <div class="kanban-col-body" id="col-done-body"></div>
-        </div>
-      </div>
+      <div class="kanban" id="kanban-board"></div>
     </div>
     <div id="tab-discounts" style="display:none">
       <div class="summary-card">
@@ -1039,29 +1014,36 @@ function renderOrders(t){renderKanban(t);}
 
 function renderKanban(t){
   if(!t)return;
-  // kanban column logic: 'new' = not yet in pipeline, 'wip' = in progress, 'done' = closed
+  // get custom cols for this truck
+  const customCols=getCustomCols(t.id);
+  const allCols=['new','wip','done',...customCols.map(c=>c.id)];
+
   const getCol=o=>{
+    if(o.kanbanCol&&allCols.includes(o.kanbanCol))return o.kanbanCol;
     if(isOrderClosed(o))return 'done';
-    if(o.kanbanCol)return o.kanbanCol; // manual override
     if(o.status==='order')return 'new';
     return 'wip';
   };
-  const cols={new:[],wip:[],done:[]};
-  t.orders.forEach(o=>cols[getCol(o)].push(o));
-  // sort each col by priority
+  const colData={};
+  allCols.forEach(c=>colData[c]=[]);
+  t.orders.forEach(o=>colData[getCol(o)].push(o));
   const sortFn=(a,b)=>{const p={high:0,mid:1,low:2};return p[a.priority]-p[b.priority]||b.days-a.days;};
-  Object.values(cols).forEach(arr=>arr.sort(sortFn));
+  Object.values(colData).forEach(arr=>arr.sort(sortFn));
 
-  ['new','wip','done'].forEach(col=>{
-    const body=document.getElementById(`col-${col}-body`);
-    const cnt=document.getElementById(`col-${col}-cnt`);
-    if(!body)return;
-    cnt.textContent=cols[col].length;
-    if(!cols[col].length){
-      body.innerHTML=`<div style="color:var(--text3);font-size:var(--fs-xs);text-align:center;padding:16px 0;opacity:.5">пусто</div>`;
-      return;
-    }
-    body.innerHTML=cols[col].map(o=>{
+  const board=document.getElementById('kanban-board');
+
+  // rebuild board dynamically
+  // Keep base 3 cols + custom cols + add button
+  const baseColDefs=[
+    {id:'new',label:'Новые',cls:'col-new'},
+    {id:'wip',label:'В работе',cls:'col-wip'},
+    {id:'done',label:'Закрыто',cls:'col-done'},
+    ...customCols.map(c=>({id:c.id,label:c.label,cls:'col-custom',custom:true,color:c.color||'var(--purple)'}))
+  ];
+
+  board.innerHTML=baseColDefs.map(colDef=>{
+    const orders=colData[colDef.id]||[];
+    const cardsHTML=orders.length?orders.map(o=>{
       const isDeferred=isOrderDeferred(o);
       const firstSent=(o.suppliers||[]).find(s=>s.sent);
       const supplierSpan=firstSent?'<span style="margin-left:4px">'+firstSent.name+'</span>':'';
@@ -1075,8 +1057,49 @@ function renderKanban(t){
           supplierSpan+
         '</div>'+
       '</div>';
-    }).join('');
-  });
+    }).join(''):'<div style="color:var(--text3);font-size:var(--fs-xs);text-align:center;padding:16px 0;opacity:.5">пусто</div>';
+
+    const headerStyle=colDef.color?'color:'+colDef.color:'';
+    const delBtn=colDef.custom?'<button onclick="removeCustomCol(\''+colDef.id+'\')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">×</button>':'';
+    return '<div class="kanban-col" ondragover="kanbanDragOver(event,\''+colDef.id+'\')" ondrop="kanbanDrop(event,\''+colDef.id+'\')" ondragleave="kanbanDragLeave(event)">'+
+      '<div class="kanban-col-header '+colDef.cls+'" style="gap:4px;'+headerStyle+'">'+
+        '<span style="flex:1">'+colDef.label+'</span>'+
+        '<button onclick="editColName(\''+colDef.id+'\')" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:0 2px;opacity:.6">✏️</button>'+
+        delBtn+
+        '<span style="opacity:.5">'+orders.length+'</span>'+
+      '</div>'+
+      '<div class="kanban-col-body" id="col-'+colDef.id+'-body">'+cardsHTML+'</div>'+
+    '</div>';
+  }).join('')+
+  '<div style="display:flex;align-items:center;justify-content:center;min-width:44px">'+
+    '<button onclick="addCustomCol()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px dashed var(--border2);color:var(--text3);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;" title="Добавить колонку">+</button>'+
+  '</div>';
+}
+
+// Custom columns management
+function getCustomCols(truckId){
+  try{return JSON.parse(localStorage.getItem('custom_cols_'+truckId)||'[]');}catch(_){return[];}
+}
+function saveCustomCols(truckId,cols){
+  try{localStorage.setItem('custom_cols_'+truckId,JSON.stringify(cols));}catch(_){}
+}
+function addCustomCol(){
+  const t=getTruck();if(!t)return;
+  const label=prompt('Название колонки:');
+  if(!label)return;
+  const cols=getCustomCols(t.id);
+  const id='custom_'+Date.now();
+  cols.push({id,label,color:'var(--purple)'});
+  saveCustomCols(t.id,cols);
+  renderKanban(t);
+}
+function removeCustomCol(colId){
+  const t=getTruck();if(!t)return;
+  // move orders back to wip
+  t.orders.forEach(o=>{if(o.kanbanCol===colId)o.kanbanCol='wip';});
+  const cols=getCustomCols(t.id).filter(c=>c.id!==colId);
+  saveCustomCols(t.id,cols);
+  renderKanban(t);scheduleSave();
 }
 
 // kanban drag
@@ -1481,8 +1504,8 @@ function getQuarter(dateStr){
 }
 
 function renderDiscounts(t){
-  const total=t.discounts.reduce((s,d)=>s+d.amount,0);
-  const mine=t.discounts.reduce((s,d)=>s+d.mine,0);
+  const total=t.discounts.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
+  const mine=t.discounts.reduce((s,d)=>s+(parseFloat(d.mine)||0),0);
   const el=document.getElementById('disc-total');if(el)el.textContent='$'+total.toLocaleString(undefined,{maximumFractionDigits:0});
   const el2=document.getElementById('disc-mine');if(el2)el2.textContent='$'+mine.toLocaleString(undefined,{maximumFractionDigits:0});
   const list=document.getElementById('disc-list');if(!list)return;
@@ -1494,12 +1517,15 @@ function renderDiscounts(t){
     byQ[q].push(d);
   });
   list.innerHTML=Object.entries(byQ).sort((a,b)=>b[0].localeCompare(a[0])).map(([q,discs])=>{
-    const qMine=discs.reduce((s,d)=>s+d.mine,0);
+    const qMine=discs.reduce((s,d)=>s+(parseFloat(d.mine)||0),0);
     const discRows=discs.map(d=>{
-      const amountDiv=d.amount?'<div class="discount-saved">−$'+d.amount.toLocaleString(undefined,{maximumFractionDigits:0})+'</div>':'';
-      const mineDiv=d.mine?'<div class="discount-mine">+$'+d.mine.toFixed(0)+' твои</div>':'<div class="discount-mine">'+(d.pct*0.1).toFixed(1)+'% твои</div>';
+      const dAmount=parseFloat(d.amount)||0;
+      const dMine=parseFloat(d.mine)||0;
+      const dPct=parseFloat(d.pct)||0;
+      const amountDiv=dAmount?'<div class="discount-saved">−$'+dAmount.toLocaleString(undefined,{maximumFractionDigits:0})+'</div>':'';
+      const mineDiv=dMine?'<div class="discount-mine">+$'+dMine.toFixed(0)+' твои</div>':dPct?'<div class="discount-mine">'+dPct+'% скидка</div>':'';
       return '<div class="discount-row">'+
-        '<div style="flex:1"><div class="discount-item">'+d.pct+'% · '+d.orderNum+'</div><div class="discount-meta">'+d.orderName+(d.supplier?' · '+d.supplier:'')+'</div></div>'+
+        '<div style="flex:1"><div class="discount-item">'+dPct+'% · '+(d.orderNum||'—')+'</div><div class="discount-meta">'+(d.orderName||'')+(d.supplier?' · '+d.supplier:'')+'</div></div>'+
         '<div style="text-align:right;flex-shrink:0">'+amountDiv+mineDiv+'</div>'+
         '<button class="row-del" onclick="removeDiscount(\''+d.id+'\')" style="opacity:1;margin-left:8px">×</button>'+
       '</div>';
@@ -2021,7 +2047,14 @@ function renderDiscountAnalytics(){
 
   // collect all discounts
   const all=[];
-  state.trucks.forEach(t=>t.discounts.forEach(d=>all.push({...d,truckName:t.name,truckColor:getTruckColor(t)})));
+  state.trucks.forEach(t=>t.discounts.forEach(d=>all.push({
+    ...d,
+    amount:parseFloat(d.amount)||0,
+    mine:parseFloat(d.mine)||0,
+    pct:parseFloat(d.pct)||0,
+    truckName:t.name,
+    truckColor:getTruckColor(t)
+  })));
 
   if(!all.length){
     el.innerHTML='<div class="empty-state"><div class="empty-icon">💰</div>Скидок нет.<br>Добавь первую в разделе трака.</div>';
