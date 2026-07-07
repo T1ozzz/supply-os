@@ -986,10 +986,15 @@ function renderTruckCard(t,allScores){
   const colorDot='<label title="Цвет" style="position:absolute;bottom:8px;right:8px;width:12px;height:12px;border-radius:50%;background:'+color+';cursor:pointer;border:2px solid rgba(255,255,255,0.15);display:block;overflow:hidden;z-index:10" onclick="event.stopPropagation();event.preventDefault()">'+
     '<input type="color" value="'+color+'" style="position:absolute;width:200%;height:200%;top:-50%;left:-50%;opacity:0;cursor:pointer" onchange="event.stopPropagation();setTruckColor('+t.id+',this.value)" onclick="event.stopPropagation()"/>'+
   '</label>';
-  // drag strip at top of card - separate from click area
-  const dragStrip='<div draggable="true" ondragstart="dragStart(event,'+t.id+')" onclick="event.stopPropagation()" style="position:absolute;top:0;left:0;right:0;height:6px;cursor:grab;background:'+color+';opacity:.6;border-radius:var(--radius) var(--radius) 0 0;"></div>';
-  return '<div class="truck-card '+prioClass+'" onclick="openTruck('+t.id+')" style="--tc:'+color+';padding-top:16px" ondragover="dragOver(event)" ondrop="dropTruck(event,'+t.id+')" ondragleave="dragLeave(event)">'+
-    dragStrip+
+  return '<div class="truck-card '+prioClass+'"'+
+    ' style="--tc:'+color+'"'+
+    ' draggable="true"'+
+    ' ondragstart="truckDragStart(event,'+t.id+')"'+
+    ' ondragover="dragOver(event)"'+
+    ' ondrop="dropTruck(event,'+t.id+')"'+
+    ' ondragleave="dragLeave(event)"'+
+    ' onclick="truckClick(event,'+t.id+')"'+
+    '>'+
     '<button class="truck-del" title="'+(t.archived?'Удалить':'В архив')+'" onclick="event.stopPropagation();'+deleteAction+'">×</button>'+
     '<div class="truck-priority">'+tierIcon+' '+activeO.length+' заявок</div>'+
     '<div class="truck-name" style="color:'+color+'">'+t.name+urgentLabel+'</div>'+
@@ -2026,7 +2031,20 @@ function goBack(screenId){
 
 // ══ DRAG & DROP ══════════════════════════════════════════
 let dragId=null;
-function dragStart(e,id){dragId=id;e.stopPropagation();}
+let truckWasDragged=false;
+
+function truckDragStart(e,id){
+  dragId=id;
+  truckWasDragged=true;
+  setTimeout(()=>truckWasDragged=false, 300);
+}
+
+function truckClick(e,id){
+  if(truckWasDragged)return;
+  openTruck(id);
+}
+
+function dragStart(e,id){dragId=id;}
 function dragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
 function dragLeave(e){e.currentTarget.classList.remove('drag-over');}
 function dropTruck(e,targetId){
