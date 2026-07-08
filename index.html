@@ -1051,9 +1051,95 @@ function editColName(col){
   inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.value=current;inp.blur();}};
 }
 
+// ══ CUSTOM COLS ══════════════════════════════════════════
+function getCustomCols(truckId){
+  try{return JSON.parse(localStorage.getItem('custom_cols_'+truckId)||'[]');}catch(_){return[];}
+}
+function saveCustomCols(truckId,cols){
+  try{localStorage.setItem('custom_cols_'+truckId,JSON.stringify(cols));}catch(_){}
+}
+function addCustomCol(){
+  const t=getTruck();if(!t)return;
+  const label=prompt('Название колонки:');
+  if(!label||!label.trim())return;
+  const cols=getCustomCols(t.id);
+  const id='custom_'+Date.now();
+  cols.push({id,label:label.trim(),color:'#8b6cb5'});
+  saveCustomCols(t.id,cols);
+  renderKanban(t);
+}
+function removeCustomCol(colId){
+  const t=getTruck();if(!t)return;
+  t.orders.forEach(o=>{if(o.kanbanCol===colId)o.kanbanCol='wip';});
+  const cols=getCustomCols(t.id).filter(c=>c.id!==colId);
+  saveCustomCols(t.id,cols);
+  renderKanban(t);scheduleSave();
+}
+function setCustomColColor(colId,color){
+  const t=getTruck();if(!t)return;
+  const cols=getCustomCols(t.id);
+  const c=cols.find(x=>x.id===colId);
+  if(c){c.color=color;saveCustomCols(t.id,cols);renderKanban(t);}
+}
+function getColOrder(truckId){
+  try{return JSON.parse(localStorage.getItem('col_order_'+truckId)||'[]');}catch(_){return[];}
+}
+function saveColOrder(truckId,order){
+  try{localStorage.setItem('col_order_'+truckId,JSON.stringify(order));}catch(_){}
+}
+function sortColsByOrder(defs,order){
+  if(!order.length)return defs;
+  const indexed=defs.filter(d=>order.includes(d.id)).sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+  const unindexed=defs.filter(d=>!order.includes(d.id));
+  return [...indexed,...unindexed];
+}
+function getManualOrder(truckId,col){
+  try{return JSON.parse(localStorage.getItem('card_order_'+truckId+'_'+col)||'[]');}catch(_){return[];}
+}
+function saveManualOrder(truckId,col,ids){
+  try{localStorage.setItem('card_order_'+truckId+'_'+col,JSON.stringify(ids));}catch(_){}
+}
+function rgbToHex(color){
+  if(!color||color.startsWith('var('))return '#8b6cb5';
+  return color;
+}
+
+// ══ KANBAN COL NAMES ════════════════════════════════════
+function getColNames(truckId){
+  try{return JSON.parse(localStorage.getItem('col_names_'+truckId)||'{}');}catch(_){return{};}
+}
+function saveColNames(truckId,names){
+  try{localStorage.setItem('col_names_'+truckId,JSON.stringify(names));}catch(_){}
+}
+function applyColNames(truckId){
+  const names=getColNames(truckId);
+  ['new','wip','done'].forEach(col=>{
+    const el=document.getElementById('col-'+col+'-label');
+    if(el&&names[col])el.textContent=names[col];
+  });
+}
+function editColName(col){
+  const el=document.getElementById('col-'+col+'-label');
+  if(!el)return;
+  const current=el.textContent;
+  const inp=document.createElement('input');
+  inp.value=current;
+  inp.style.cssText='background:transparent;border:none;border-bottom:1px solid var(--accent);color:inherit;font:inherit;font-weight:700;font-size:inherit;outline:none;width:80px;';
+  el.replaceWith(inp);inp.focus();inp.select();
+  const save=()=>{
+    const val=inp.value.trim()||current;
+    const span=document.createElement('span');
+    span.id='col-'+col+'-label';span.textContent=val;
+    inp.replaceWith(span);
+    const names=getColNames(state.currentTruckId);names[col]=val;
+    saveColNames(state.currentTruckId,names);
+  };
+  inp.onblur=save;
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.value=current;inp.blur();}};
+}
+
 // ══ TRUCK ═══════════════════════════════════════════════
 function openTruck(id){
-  console.log('openTruck called with id:', id);
   state.currentTruckId=id;
   const t=state.trucks.find(x=>x.id===id);
   document.getElementById('truck-screen-name').textContent=t.name;
