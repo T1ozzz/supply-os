@@ -987,14 +987,14 @@ function renderTruckCard(t,allScores){
     '<input type="color" value="'+color+'" style="position:absolute;width:200%;height:200%;top:-50%;left:-50%;opacity:0;cursor:pointer" onchange="event.stopPropagation();setTruckColor('+t.id+',this.value)" onclick="event.stopPropagation()"/>'+
   '</label>';
   return '<div class="truck-card '+prioClass+'"'+
+    ' id="tcard-'+t.id+'"'+
     ' style="--tc:'+color+'"'+
-    ' draggable="true"'+
-    ' ondragstart="truckDragStart(event,'+t.id+')"'+
     ' ondragover="dragOver(event)"'+
     ' ondrop="dropTruck(event,'+t.id+')"'+
     ' ondragleave="dragLeave(event)"'+
-    ' onclick="truckClick(event,'+t.id+')"'+
+    ' onclick="openTruck('+t.id+')"'+
     '>'+
+    '<div class="truck-drag-strip" draggable="true" ondragstart="dragStart(event,'+t.id+')" onclick="event.stopPropagation()" title="Перетащить" style="position:absolute;top:0;left:0;right:0;height:4px;background:'+color+';cursor:grab;border-radius:var(--radius) var(--radius) 0 0;"></div>'+
     '<button class="truck-del" title="'+(t.archived?'Удалить':'В архив')+'" onclick="event.stopPropagation();'+deleteAction+'">×</button>'+
     '<div class="truck-priority">'+tierIcon+' '+activeO.length+' заявок</div>'+
     '<div class="truck-name" style="color:'+color+'">'+t.name+urgentLabel+'</div>'+
@@ -1053,6 +1053,7 @@ function editColName(col){
 
 // ══ TRUCK ═══════════════════════════════════════════════
 function openTruck(id){
+  console.log('openTruck called with id:', id);
   state.currentTruckId=id;
   const t=state.trucks.find(x=>x.id===id);
   document.getElementById('truck-screen-name').textContent=t.name;
@@ -2031,20 +2032,14 @@ function goBack(screenId){
 
 // ══ DRAG & DROP ══════════════════════════════════════════
 let dragId=null;
-let truckWasDragged=false;
 
-function truckDragStart(e,id){
+function dragStart(e,id){
   dragId=id;
-  truckWasDragged=true;
-  setTimeout(()=>truckWasDragged=false, 300);
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',String(id));
 }
 
-function truckClick(e,id){
-  if(truckWasDragged)return;
-  openTruck(id);
-}
-
-function dragStart(e,id){dragId=id;}
+function dragStart_old(e,id){dragId=id;}
 function dragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
 function dragLeave(e){e.currentTarget.classList.remove('drag-over');}
 function dropTruck(e,targetId){
