@@ -1229,7 +1229,9 @@ function renderKanban(t){
       const isUrgent=o.priority==='high'&&!isOrderClosed(o)&&o.days>=3;
       const daysWarn=o.days>=3&&!isOrderClosed(o)&&!isDeferred;
       const tier=o.discTier||null;
-      const tierBadge=tier?'<span style="font-size:11px;margin-left:3px">'+(tier==='high'?'🔴':tier==='mid'?'🟡':'🟢')+'</span>':'';
+      const tierBadge=tier?
+        '<span onclick="event.stopPropagation();cycleOrderTier('+o.id+')" title="Нажми чтобы изменить тир" style="font-size:13px;cursor:pointer;margin-left:2px">'+(tier==='high'?'🔴':tier==='mid'?'🟡':'🟢')+'</span>':
+        '<span onclick="event.stopPropagation();cycleOrderTier('+o.id+')" title="Установить тир скидки" style="font-size:11px;cursor:pointer;color:var(--text3);margin-left:2px;opacity:.5">◯</span>';
       const delAction="confirmDelete('Удалить?','Нельзя отменить.',()=>{const tr=getTruck();tr.orders=tr.orders.filter(x=>x.id!=="+o.id+");renderKanban(tr);checkUrgency();})";
       const statusDot='s-'+o.status;
       const urgentClass=isUrgent?' urgent-card':'';
@@ -1239,7 +1241,8 @@ function renderKanban(t){
         '<span class="kanban-card-drag-handle">⠿</span>'+
         '<button class="kanban-card-del" onclick="event.stopPropagation();'+delAction+'">×</button>'+
         '<div class="kanban-card-num">'+o.num+'</div>'+
-        '<div class="kanban-card-name">'+o.name+(isDeferred?' 🕐':'')+tierBadge+'</div>'+
+        '<div class="kanban-card-name">'+o.name+(isDeferred?' 🕐':'')+'</div>'+
+        (tier?'<div style="margin-bottom:4px">'+(tier==='high'?'<span style="font-size:10px;font-weight:600;color:var(--red);background:var(--red-dim);padding:2px 7px;border-radius:20px;cursor:pointer" onclick="event.stopPropagation();cycleOrderTier('+o.id+')">🔴 Дорогая</span>':tier==='mid'?'<span style="font-size:10px;font-weight:600;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:20px;cursor:pointer" onclick="event.stopPropagation();cycleOrderTier('+o.id+')">🟡 Средняя</span>':'<span style="font-size:10px;font-weight:600;color:var(--green);background:var(--green-dim);padding:2px 7px;border-radius:20px;cursor:pointer" onclick="event.stopPropagation();cycleOrderTier('+o.id+')">🟢 Дешёвая</span>')+'</div>':'<div style="margin-bottom:4px"><span style="font-size:10px;color:var(--text3);cursor:pointer;opacity:.4" onclick="event.stopPropagation();cycleOrderTier('+o.id+')" title="Установить тир">+ тир скидки</span></div>')+
         '<div class="kanban-card-meta">'+
           '<span class="status-pill '+STATUS_CLASS[o.status]+'" style="font-size:9px;padding:2px 5px">'+STATUS_LABELS[o.status]+'</span>'+
           (daysWarn?'<span style="color:var(--red);font-size:9px">'+o.days+'д</span>':'')+
@@ -1724,6 +1727,14 @@ function setOrderTier(tier){
   const o=getOrder();if(!o)return;
   o.discTier=tier||'';
   renderOrderDetail();scheduleSave();
+}
+function cycleOrderTier(orderId){
+  const t=getTruck();if(!t)return;
+  const o=t.orders.find(x=>x.id===orderId);if(!o)return;
+  const cycle=['','low','mid','high'];
+  const idx=cycle.indexOf(o.discTier||'');
+  o.discTier=cycle[(idx+1)%cycle.length];
+  renderKanban(t);scheduleSave();
 }
 function updateNotes(val){const o=getOrder();if(o)o.notes=val;}
 
