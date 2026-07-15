@@ -659,9 +659,13 @@ if(sessionStorage.getItem('supply_auth')==='1'){
     </div>
     <div class="form-group"><label class="form-label">Название</label><input class="form-input" id="new-order-name"/></div>
     <div class="form-group">
-      <label class="form-label">Сумма заказа $ <span style="color:var(--text3)">(для определения приоритета скидки)</span></label>
-      <input class="form-input" type="number" id="new-order-amount" placeholder="0" oninput="updateAmountTier(this.value)"/>
-      <div id="amount-tier-preview" style="margin-top:6px;font-size:11px;display:none"></div>
+      <label class="form-label">Тир скидки</label>
+      <select class="form-input" id="new-order-tier">
+        <option value="">— не указан —</option>
+        <option value="low">🟢 Дешёвая — скидку не выбивать</option>
+        <option value="mid">🟡 Средняя — можно попробовать</option>
+        <option value="high">🔴 Дорогая — обязательно выбить скидку</option>
+      </select>
     </div>
     <div class="form-group">
       <label class="form-label">Срочность</label>
@@ -1224,9 +1228,8 @@ function renderKanban(t){
       const firstSent=(o.suppliers||[]).find(s=>s.sent);
       const isUrgent=o.priority==='high'&&!isOrderClosed(o)&&o.days>=3;
       const daysWarn=o.days>=3&&!isOrderClosed(o)&&!isDeferred;
-      const tier=getAmountTier(o.amount);
-      const tierBadge=tier?'<span style="font-size:9px;margin-left:2px">'+
-        (tier.level==='high'?'🔴':tier.level==='mid'?'🟡':'🟢')+'</span>':'';
+      const tier=o.discTier||null;
+      const tierBadge=tier?'<span style="font-size:11px;margin-left:3px">'+(tier==='high'?'🔴':tier==='mid'?'🟡':'🟢')+'</span>':'';
       const delAction="confirmDelete('Удалить?','Нельзя отменить.',()=>{const tr=getTruck();tr.orders=tr.orders.filter(x=>x.id!=="+o.id+");renderKanban(tr);checkUrgency();})";
       const statusDot='s-'+o.status;
       const urgentClass=isUrgent?' urgent-card':'';
@@ -1499,6 +1502,17 @@ function renderOrderDetail(){
       </div>
     </div>
     <div class="detail-section">
+      <div class="detail-section-header">Тир скидки</div>
+      <div class="detail-section-body" style="padding-top:8px;padding-bottom:8px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${[['','— нет —'],['low','🟢 Дешёвая'],['mid','🟡 Средняя'],['high','🔴 Дорогая']].map(([v,lbl])=>{
+            const active=o.discTier===v||(v===''&&!o.discTier);
+            return '<button onclick="setOrderTier(\''+v+'\')" style="flex:1;min-width:70px;padding:7px 4px;border-radius:var(--radius-sm);border:1px solid '+(active?'var(--accent)':'var(--border)')+';background:'+(active?'var(--accent-dim)':'var(--surface2)')+';color:'+(active?'var(--accent)':'var(--text2)')+';cursor:pointer;font-size:11px;font-family:\'Inter\',sans-serif;font-weight:'+(active?'700':'400')+'">'+lbl+'</button>';
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="detail-section">
       <div class="detail-section-header">Заметки</div>
       <div class="detail-section-body">
         <textarea class="notes-area" placeholder="Скидки, согласования, доп. инфо..." onchange="updateNotes(this.value)">${o.notes||''}</textarea>
@@ -1706,6 +1720,11 @@ function previewFile(i){
   w.document.title=f.name;
 }
 function removeFile(i){const o=getOrder();o.files.splice(i,1);renderOrderDetail();}
+function setOrderTier(tier){
+  const o=getOrder();if(!o)return;
+  o.discTier=tier||'';
+  renderOrderDetail();scheduleSave();
+}
 function updateNotes(val){const o=getOrder();if(o)o.notes=val;}
 
 // ══ DISCOUNTS ════════════════════════════════════════════
@@ -2044,14 +2063,17 @@ function addOrder(){
   const priority=document.getElementById('new-order-priority').value;
   const urgency=document.getElementById('new-order-urgency').value;
   const deferredUntil=urgency==='deferred'?getDeferredDate():null;
-  const amount=parseFloat(document.getElementById('new-order-amount').value)||0;
+  const amount=parseFloat(document.getElementById('new-order-amount')?.value)||0;
+  const discTier=document.getElementById('new-order-tier')?.value||'';
   const t=getTruck();if(!t)return;
-  t.orders.unshift({id:Date.now(),num:num||'—',name,notes,priority,urgency,deferredUntil,amount,status:'order',days:0,items:[],suppliers:[],files:[]});
+  t.orders.unshift({id:Date.now(),num:num||'—',name,notes,priority,urgency,deferredUntil,amount,discTier,status:'order',days:0,items:[],suppliers:[],files:[]});
   hideModal('modal-add-order');
-  ['new-order-num','new-order-name','new-order-notes','new-order-amount'].forEach(id=>document.getElementById(id).value='');
+  ['new-order-num','new-order-name','new-order-notes'].forEach(id=>document.getElementById(id).value='');
+  const amtEl=document.getElementById('new-order-amount');if(amtEl)amtEl.value='';
+  const tierEl=document.getElementById('new-order-tier');if(tierEl)tierEl.value='';
   document.getElementById('new-order-urgency').value='normal';
   document.getElementById('deferred-date-group').style.display='none';
-  document.getElementById('amount-tier-preview').style.display='none';
+  const prevEl=document.getElementById('amount-tier-preview');if(prevEl)prevEl.style.display='none';
   renderOrders(t);checkUrgency();
 }
 
