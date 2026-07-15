@@ -659,6 +659,11 @@ if(sessionStorage.getItem('supply_auth')==='1'){
     </div>
     <div class="form-group"><label class="form-label">Название</label><input class="form-input" id="new-order-name"/></div>
     <div class="form-group">
+      <label class="form-label">Сумма заказа $ <span style="color:var(--text3)">(для определения приоритета скидки)</span></label>
+      <input class="form-input" type="number" id="new-order-amount" placeholder="0" oninput="updateAmountTier(this.value)"/>
+      <div id="amount-tier-preview" style="margin-top:6px;font-size:11px;display:none"></div>
+    </div>
+    <div class="form-group">
       <label class="form-label">Срочность</label>
       <select class="form-input" id="new-order-urgency" onchange="toggleDeferredDate(this.value)">
         <option value="normal">⚡ Обычная — учитывается системой</option>
@@ -846,6 +851,8 @@ const PIPELINE=[
 
 let state={
   truckOrder:[],
+  customCols:{}, // truckId -> [{id,label,color}]
+  colOrder:{},   // truckId -> [colId, ...]
   // Global supplier directory: [{id, country, suppliers:[{id,name,email,phone}]}]
   supplierDir:[
     {id:1, country:'США', suppliers:[
@@ -1053,10 +1060,12 @@ function editColName(col){
 
 // ══ CUSTOM COLS ══════════════════════════════════════════
 function getCustomCols(truckId){
-  try{return JSON.parse(localStorage.getItem('custom_cols_'+truckId)||'[]');}catch(_){return[];}
+  return (state.customCols&&state.customCols[truckId])||[];
 }
 function saveCustomCols(truckId,cols){
-  try{localStorage.setItem('custom_cols_'+truckId,JSON.stringify(cols));}catch(_){}
+  if(!state.customCols)state.customCols={};
+  state.customCols[truckId]=cols;
+  scheduleSave();
 }
 function addCustomCol(){
   const t=getTruck();if(!t)return;
@@ -1071,8 +1080,7 @@ function addCustomCol(){
 function removeCustomCol(colId){
   const t=getTruck();if(!t)return;
   t.orders.forEach(o=>{if(o.kanbanCol===colId)o.kanbanCol='wip';});
-  const cols=getCustomCols(t.id).filter(c=>c.id!==colId);
-  saveCustomCols(t.id,cols);
+  saveCustomCols(t.id,getCustomCols(t.id).filter(c=>c.id!==colId));
   renderKanban(t);scheduleSave();
 }
 function setCustomColColor(colId,color){
@@ -1082,10 +1090,12 @@ function setCustomColColor(colId,color){
   if(c){c.color=color;saveCustomCols(t.id,cols);renderKanban(t);}
 }
 function getColOrder(truckId){
-  try{return JSON.parse(localStorage.getItem('col_order_'+truckId)||'[]');}catch(_){return[];}
+  return (state.colOrder&&state.colOrder[truckId])||[];
 }
 function saveColOrder(truckId,order){
-  try{localStorage.setItem('col_order_'+truckId,JSON.stringify(order));}catch(_){}
+  if(!state.colOrder)state.colOrder={};
+  state.colOrder[truckId]=order;
+  scheduleSave();
 }
 function sortColsByOrder(defs,order){
   if(!order.length)return defs;
@@ -1214,6 +1224,9 @@ function renderKanban(t){
       const firstSent=(o.suppliers||[]).find(s=>s.sent);
       const isUrgent=o.priority==='high'&&!isOrderClosed(o)&&o.days>=3;
       const daysWarn=o.days>=3&&!isOrderClosed(o)&&!isDeferred;
+      const tier=getAmountTier(o.amount);
+      const tierBadge=tier?'<span style="font-size:9px;margin-left:2px">'+
+        (tier.level==='high'?'🔴':tier.level==='mid'?'🟡':'🟢')+'</span>':'';
       const delAction="confirmDelete('Удалить?','Нельзя отменить.',()=>{const tr=getTruck();tr.orders=tr.orders.filter(x=>x.id!=="+o.id+");renderKanban(tr);checkUrgency();})";
       const statusDot='s-'+o.status;
       const urgentClass=isUrgent?' urgent-card':'';
@@ -1223,7 +1236,7 @@ function renderKanban(t){
         '<span class="kanban-card-drag-handle">⠿</span>'+
         '<button class="kanban-card-del" onclick="event.stopPropagation();'+delAction+'">×</button>'+
         '<div class="kanban-card-num">'+o.num+'</div>'+
-        '<div class="kanban-card-name">'+o.name+(isDeferred?' 🕐':'')+'</div>'+
+        '<div class="kanban-card-name">'+o.name+(isDeferred?' 🕐':'')+tierBadge+'</div>'+
         '<div class="kanban-card-meta">'+
           '<span class="status-pill '+STATUS_CLASS[o.status]+'" style="font-size:9px;padding:2px 5px">'+STATUS_LABELS[o.status]+'</span>'+
           (daysWarn?'<span style="color:var(--red);font-size:9px">'+o.days+'д</span>':'')+
@@ -2006,6 +2019,24 @@ function addTruck(){
   hideModal('modal-add-truck');document.getElementById('new-truck-name').value='';
   renderMain();checkUrgency();
 }
+// ══ AMOUNT TIER ══════════════════════════════════════════
+function getAmountTier(amount){
+  const a=parseFloat(amount)||0;
+  if(a<=0)return null;
+  if(a<1000)return{level:'low',label:'🟢 До $1000 — скидку не выбивать',color:'var(--green)'};
+  if(a<=10000)return{level:'mid',label:'🟡 $1000–$10000 — можно попробовать',color:'var(--accent)'};
+  return{level:'high',label:'🔴 >$10000 — обязательно выбить скидку',color:'var(--red)'};
+}
+function updateAmountTier(val){
+  const tier=getAmountTier(val);
+  const el=document.getElementById('amount-tier-preview');
+  if(!el)return;
+  if(!tier){el.style.display='none';return;}
+  el.style.display='';
+  el.style.color=tier.color;
+  el.textContent=tier.label;
+}
+
 function addOrder(){
   const num=document.getElementById('new-order-num').value.trim();
   const name=document.getElementById('new-order-name').value.trim();if(!name)return;
@@ -2013,12 +2044,14 @@ function addOrder(){
   const priority=document.getElementById('new-order-priority').value;
   const urgency=document.getElementById('new-order-urgency').value;
   const deferredUntil=urgency==='deferred'?getDeferredDate():null;
+  const amount=parseFloat(document.getElementById('new-order-amount').value)||0;
   const t=getTruck();if(!t)return;
-  t.orders.unshift({id:Date.now(),num:num||'—',name,notes,priority,urgency,deferredUntil,status:'order',days:0,items:[],suppliers:[],files:[]});
+  t.orders.unshift({id:Date.now(),num:num||'—',name,notes,priority,urgency,deferredUntil,amount,status:'order',days:0,items:[],suppliers:[],files:[]});
   hideModal('modal-add-order');
-  ['new-order-num','new-order-name','new-order-notes'].forEach(id=>document.getElementById(id).value='');
+  ['new-order-num','new-order-name','new-order-notes','new-order-amount'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('new-order-urgency').value='normal';
   document.getElementById('deferred-date-group').style.display='none';
+  document.getElementById('amount-tier-preview').style.display='none';
   renderOrders(t);checkUrgency();
 }
 
@@ -2787,6 +2820,8 @@ async function loadFromFirebase(){
       const data=await decrypt(raw.d);
       if(data.trucks)state.trucks=data.trucks;
       if(data.truckOrder)state.truckOrder=data.truckOrder;
+      if(data.customCols)state.customCols=data.customCols;
+      if(data.colOrder)state.colOrder=data.colOrder;
       if(data.movements)state.movements=data.movements;
       if(data.supplierDir)state.supplierDir=data.supplierDir;
       localStorage.setItem('supply_os_state',JSON.stringify(data));
