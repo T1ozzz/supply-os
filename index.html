@@ -2789,7 +2789,7 @@ function setSyncIndicator(status){
 async function saveToFirebase(){
   try{
     setSyncIndicator('saving');
-    const data={trucks:state.trucks,movements:state.movements,supplierDir:state.supplierDir,truckOrder:state.truckOrder};
+    const data={trucks:state.trucks,movements:state.movements,supplierDir:state.supplierDir,truckOrder:state.truckOrder,customCols:state.customCols||{},colOrder:state.colOrder||{}};
     const encrypted=await encrypt(data);
     const hash=btoa(encrypted.slice(0,40));
     if(hash===lastSyncHash){setSyncIndicator('idle');return;}
@@ -2807,7 +2807,7 @@ async function saveToFirebase(){
     setSyncIndicator('error');
     console.error('Firebase save error:',e);
     // fallback to localStorage
-    try{localStorage.setItem('supply_os_state',JSON.stringify({trucks:state.trucks,movements:state.movements,supplierDir:state.supplierDir}));}catch(_){}
+    try{localStorage.setItem('supply_os_state',JSON.stringify({trucks:state.trucks,movements:state.movements,supplierDir:state.supplierDir,truckOrder:state.truckOrder,customCols:state.customCols||{},colOrder:state.colOrder||{}}));}catch(_){}
   }
 }
 
@@ -2892,7 +2892,7 @@ async function boot(){
   if(!loaded){
     try{
       const raw=localStorage.getItem('supply_os_state');
-      if(raw){const s=JSON.parse(raw);if(s.trucks)state.trucks=s.trucks;if(s.movements)state.movements=s.movements;if(s.supplierDir)state.supplierDir=s.supplierDir;}
+      if(raw){const s=JSON.parse(raw);if(s.trucks)state.trucks=s.trucks;if(s.movements)state.movements=s.movements;if(s.supplierDir)state.supplierDir=s.supplierDir;if(s.truckOrder)state.truckOrder=s.truckOrder;if(s.customCols)state.customCols=s.customCols;if(s.colOrder)state.colOrder=s.colOrder;}
     }catch(_){}
   }
   renderMain();
