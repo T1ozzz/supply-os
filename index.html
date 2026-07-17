@@ -758,6 +758,35 @@ if(sessionStorage.getItem('supply_auth')==='1'){
   </div>
 </div>
 
+<!-- СВЯЗАТЬ ЗАЯВКИ -->
+<div class="modal-overlay" id="modal-link-order">
+  <div class="modal">
+    <div class="modal-title">Связать заявки</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Выбери заявку для связи</div>
+    <div id="link-order-list" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+    <div style="margin-top:14px">
+      <label class="form-label">Общий поставщик (опционально)</label>
+      <input class="form-input" id="link-supplier-input" placeholder="Название поставщика"/>
+    </div>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="hideModal('modal-link-order')">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ПОСТАВЩИК НА КАРТОЧКЕ -->
+<div class="modal-overlay" id="modal-card-supplier">
+  <div class="modal">
+    <div class="modal-title">Поставщик заявки</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="card-supplier-order-name"></div>
+    <input class="form-input" id="card-supplier-input" placeholder="Введи имя поставщика"/>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="clearCardSupplier()">Удалить</button>
+      <button class="btn btn-primary" onclick="saveCardSupplier()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <!-- МАРШРУТ -->
 <div class="modal-overlay" id="modal-add-movement">
   <div class="modal">
@@ -1753,57 +1782,101 @@ function cycleOrderTier(orderId){
   renderKanban(t);scheduleSave();
 }
 
+let _cardSupplierOrderId=null;
+
 function setCardSupplier(orderId){
   const t=getTruck();if(!t)return;
   const o=t.orders.find(x=>x.id===orderId);if(!o)return;
-  const current=o.cardSupplier||'';
-  const val=prompt('Поставщик для заявки "'+o.name+'":', current);
-  if(val===null)return;
-  o.cardSupplier=val.trim();
-  // if linked group — ask to apply to all
-  if(o.linkedGroup&&o.cardSupplier){
-    const grouped=t.orders.filter(x=>x.linkedGroup===o.linkedGroup&&x.id!==orderId);
-    if(grouped.length&&confirm('Применить поставщика ко всем '+grouped.length+' связанным заявкам?')){
-      grouped.forEach(x=>x.cardSupplier=o.cardSupplier);
+  _cardSupplierOrderId=orderId;
+  document.getElementById('card-supplier-order-name').textContent=o.num+' — '+o.name;
+  document.getElementById('card-supplier-input').value=o.cardSupplier||'';
+  showModal('modal-card-supplier');
+  setTimeout(()=>document.getElementById('card-supplier-input').focus(),100);
+}
+
+function saveCardSupplier(){
+  const t=getTruck();if(!t)return;
+  const o=t.orders.find(x=>x.id===_cardSupplierOrderId);if(!o)return;
+  const val=document.getElementById('card-supplier-input').value.trim();
+  o.cardSupplier=val;
+  if(o.linkedGroup&&val){
+    const grouped=t.orders.filter(x=>x.linkedGroup===o.linkedGroup&&x.id!==o.id);
+    if(grouped.length){
+      // apply to all linked silently
+      grouped.forEach(x=>x.cardSupplier=val);
     }
   }
+  hideModal('modal-card-supplier');
   renderKanban(t);scheduleSave();
 }
+
+function clearCardSupplier(){
+  const t=getTruck();if(!t)return;
+  const o=t.orders.find(x=>x.id===_cardSupplierOrderId);if(!o)return;
+  o.cardSupplier='';
+  hideModal('modal-card-supplier');
+  renderKanban(t);scheduleSave();
+}
+
+let _linkOrderId=null;
+let _linkSelectedId=null;
 
 function linkOrder(orderId){
   const t=getTruck();if(!t)return;
   const o=t.orders.find(x=>x.id===orderId);if(!o)return;
   // if already linked — offer to unlink
   if(o.linkedGroup){
-    if(confirm('Заявка уже связана. Отвязать?')){
-      const group=o.linkedGroup;
-      const grouped=t.orders.filter(x=>x.linkedGroup===group);
-      if(grouped.length<=2){
-        // unlink all
-        grouped.forEach(x=>{delete x.linkedGroup;});
-      } else {
-        delete o.linkedGroup;
-      }
-      renderKanban(t);scheduleSave();
+    const group=o.linkedGroup;
+    const grouped=t.orders.filter(x=>x.linkedGroup===group);
+    if(grouped.length<=2){
+      grouped.forEach(x=>{delete x.linkedGroup;});
+    } else {
+      delete o.linkedGroup;
     }
+    renderKanban(t);scheduleSave();
     return;
   }
-  // pick another order to link with
-  const others=t.orders.filter(x=>x.id!==orderId);
-  if(!others.length){alert('Нет других заявок для связывания');return;}
-  const opts=others.map((x,i)=>(i+1)+'. '+x.num+' — '+x.name).join('\n');
-  const choice=prompt('Выбери заявку для связи (введи номер):\n'+opts);
-  if(!choice)return;
-  const idx=parseInt(choice)-1;
-  if(isNaN(idx)||idx<0||idx>=others.length)return;
-  const target=others[idx];
-  // create or join group
+  _linkOrderId=orderId;
+  _linkSelectedId=null;
+  document.getElementById('link-supplier-input').value='';
+  const list=document.getElementById('link-order-list');
+  const others=t.orders.filter(x=>x.id!==orderId&&!isOrderClosed(x));
+  if(!others.length){
+    list.innerHTML='<div style="color:var(--text3);font-size:12px;padding:12px 0">Нет других заявок</div>';
+  } else {
+    list.innerHTML=others.map(x=>{
+      const tier=x.discTier;
+      const tierIcon=tier==='high'?'🔴':tier==='mid'?'🟡':tier==='low'?'🟢':'';
+      return '<div id="link-item-'+x.id+'" onclick="selectLinkOrder('+x.id+')" style="padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;transition:all .15s;background:var(--surface2)">'+
+        '<div style="font-size:12px;font-weight:600">'+x.num+' '+tierIcon+'</div>'+
+        '<div style="font-size:11px;color:var(--text2)">'+x.name+'</div>'+
+        '<div style="font-size:10px;color:var(--text3);margin-top:2px">'+STATUS_LABELS[x.status]+'</div>'+
+      '</div>';
+    }).join('');
+  }
+  showModal('modal-link-order');
+}
+
+function selectLinkOrder(targetId){
+  _linkSelectedId=targetId;
+  // highlight selected
+  document.querySelectorAll('#link-order-list > div').forEach(el=>{
+    el.style.borderColor='var(--border)';
+    el.style.background='var(--surface2)';
+  });
+  const el=document.getElementById('link-item-'+targetId);
+  if(el){el.style.borderColor='var(--accent)';el.style.background='var(--accent-dim)';}
+  // confirm link
+  const t=getTruck();if(!t)return;
+  const o=t.orders.find(x=>x.id===_linkOrderId);
+  const target=t.orders.find(x=>x.id===targetId);
+  if(!o||!target)return;
   const group=o.linkedGroup||target.linkedGroup||('grp_'+Date.now());
   o.linkedGroup=group;
   target.linkedGroup=group;
-  // optional: set shared supplier
-  const sup=prompt('Общий поставщик для обеих заявок (Enter чтобы пропустить):','');
-  if(sup&&sup.trim()){o.cardSupplier=sup.trim();target.cardSupplier=sup.trim();}
+  const sup=document.getElementById('link-supplier-input').value.trim();
+  if(sup){o.cardSupplier=sup;target.cardSupplier=sup;}
+  hideModal('modal-link-order');
   renderKanban(t);scheduleSave();
 }
 function updateNotes(val){const o=getOrder();if(o)o.notes=val;}
