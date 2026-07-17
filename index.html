@@ -114,6 +114,9 @@
   .kanban-card-del{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;}
   .kanban-card:hover .kanban-card-del{opacity:1;}
   .kanban-card-del:hover{color:var(--red);background:var(--red-dim);}
+  /* Linked cards */
+  .linked-card{border-color:var(--blue-border, rgba(91,141,217,0.4))!important;background:rgba(91,141,217,0.04)!important;}
+  .link-indicator{font-size:9px;color:var(--blue);margin-bottom:3px;font-weight:600;}
   /* Add col button */
   .kanban-add-col{display:flex;align-items:flex-start;padding-top:2px;flex-shrink:0;}
 
@@ -1235,9 +1238,16 @@ function renderKanban(t){
       const delAction="confirmDelete('Удалить?','Нельзя отменить.',()=>{const tr=getTruck();tr.orders=tr.orders.filter(x=>x.id!=="+o.id+");renderKanban(tr);checkUrgency();})";
       const statusDot='s-'+o.status;
       const urgentClass=isUrgent?' urgent-card':'';
-      return '<div class="kanban-card prio-'+o.priority+' '+statusDot+urgentClass+'" draggable="true"'+
+      // supplier quick display
+      const cardSupplier=o.cardSupplier||'';
+      const linkedGroup=o.linkedGroup||null;
+      const linkedOrders=linkedGroup?t.orders.filter(x=>x.linkedGroup===linkedGroup&&x.id!==o.id):[];
+      const isGroupFirst=linkedGroup&&t.orders.find(x=>x.linkedGroup===linkedGroup)?.id===o.id;
+
+      return '<div class="kanban-card prio-'+o.priority+' '+statusDot+urgentClass+(linkedGroup?' linked-card':'')+'" draggable="true"'+
         ' ondragstart="kanbanDragStart(event,'+o.id+',\''+colDef.id+'\')"'+
         ' onclick="openOrder('+t.id+','+o.id+')">'+
+        (linkedGroup&&isGroupFirst?'<div class="link-indicator" title="Группа заявок">🔗 '+linkedOrders.length+' связ.</div>':'') +
         '<span class="kanban-card-drag-handle">⠿</span>'+
         '<button class="kanban-card-del" onclick="event.stopPropagation();'+delAction+'">×</button>'+
         '<div class="kanban-card-num">'+o.num+'</div>'+
@@ -1246,7 +1256,13 @@ function renderKanban(t){
         '<div class="kanban-card-meta">'+
           '<span class="status-pill '+STATUS_CLASS[o.status]+'" style="font-size:9px;padding:2px 5px">'+STATUS_LABELS[o.status]+'</span>'+
           (daysWarn?'<span style="color:var(--red);font-size:9px">'+o.days+'д</span>':'')+
-          (firstSent?'<span style="color:var(--text3)">'+firstSent.name+'</span>':'')+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:4px;margin-top:5px">'+
+          (cardSupplier?
+            '<span style="font-size:10px;color:var(--blue);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📦 '+cardSupplier+'</span>':
+            '<span style="font-size:10px;color:var(--text3);opacity:.5;flex:1">поставщик не указан</span>')+
+          '<button onclick="event.stopPropagation();setCardSupplier('+o.id+')" style="background:var(--surface3);border:1px solid var(--border2);color:var(--text2);cursor:pointer;border-radius:4px;font-size:10px;padding:1px 6px;line-height:1.6">+</button>'+
+          '<button onclick="event.stopPropagation();linkOrder('+o.id+')" title="Связать с другой заявкой" style="background:'+(linkedGroup?'var(--blue-dim)':'var(--surface3)')+';border:1px solid '+(linkedGroup?'var(--blue)':'var(--border2)')+';color:'+(linkedGroup?'var(--blue)':'var(--text2)')+';cursor:pointer;border-radius:4px;font-size:10px;padding:1px 6px;line-height:1.6">🔗</button>'+
         '</div>'+
       '</div>';
     }).join(''):'<div style="color:var(--text3);font-size:var(--fs-xs);text-align:center;padding:16px 0;opacity:.4">пусто</div>';
@@ -1734,6 +1750,60 @@ function cycleOrderTier(orderId){
   const cycle=['','low','mid','high'];
   const idx=cycle.indexOf(o.discTier||'');
   o.discTier=cycle[(idx+1)%cycle.length];
+  renderKanban(t);scheduleSave();
+}
+
+function setCardSupplier(orderId){
+  const t=getTruck();if(!t)return;
+  const o=t.orders.find(x=>x.id===orderId);if(!o)return;
+  const current=o.cardSupplier||'';
+  const val=prompt('Поставщик для заявки "'+o.name+'":', current);
+  if(val===null)return;
+  o.cardSupplier=val.trim();
+  // if linked group — ask to apply to all
+  if(o.linkedGroup&&o.cardSupplier){
+    const grouped=t.orders.filter(x=>x.linkedGroup===o.linkedGroup&&x.id!==orderId);
+    if(grouped.length&&confirm('Применить поставщика ко всем '+grouped.length+' связанным заявкам?')){
+      grouped.forEach(x=>x.cardSupplier=o.cardSupplier);
+    }
+  }
+  renderKanban(t);scheduleSave();
+}
+
+function linkOrder(orderId){
+  const t=getTruck();if(!t)return;
+  const o=t.orders.find(x=>x.id===orderId);if(!o)return;
+  // if already linked — offer to unlink
+  if(o.linkedGroup){
+    if(confirm('Заявка уже связана. Отвязать?')){
+      const group=o.linkedGroup;
+      const grouped=t.orders.filter(x=>x.linkedGroup===group);
+      if(grouped.length<=2){
+        // unlink all
+        grouped.forEach(x=>{delete x.linkedGroup;});
+      } else {
+        delete o.linkedGroup;
+      }
+      renderKanban(t);scheduleSave();
+    }
+    return;
+  }
+  // pick another order to link with
+  const others=t.orders.filter(x=>x.id!==orderId);
+  if(!others.length){alert('Нет других заявок для связывания');return;}
+  const opts=others.map((x,i)=>(i+1)+'. '+x.num+' — '+x.name).join('\n');
+  const choice=prompt('Выбери заявку для связи (введи номер):\n'+opts);
+  if(!choice)return;
+  const idx=parseInt(choice)-1;
+  if(isNaN(idx)||idx<0||idx>=others.length)return;
+  const target=others[idx];
+  // create or join group
+  const group=o.linkedGroup||target.linkedGroup||('grp_'+Date.now());
+  o.linkedGroup=group;
+  target.linkedGroup=group;
+  // optional: set shared supplier
+  const sup=prompt('Общий поставщик для обеих заявок (Enter чтобы пропустить):','');
+  if(sup&&sup.trim()){o.cardSupplier=sup.trim();target.cardSupplier=sup.trim();}
   renderKanban(t);scheduleSave();
 }
 function updateNotes(val){const o=getOrder();if(o)o.notes=val;}
