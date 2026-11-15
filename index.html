@@ -1288,6 +1288,15 @@
     .stepper-head .btn-confirm{white-space:nowrap;padding:7px 10px;}
     .stepper-status>span:not(.status-pill){display:none;}}
   @media(hover:none){.qa-kbd{display:none;}}
+
+  /* быстрая заявка: траки сеткой, с поиском */
+  .qa-trucks{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;max-height:min(232px,34vh);padding:2px 2px 2px;margin:0 -2px 12px;}
+  .qa-trucks.none-found::after{content:'Ничего не найдено';font-size:12.5px;color:var(--text3);padding:8px 2px;}
+  .qa-truck{padding:7px 11px;}
+  .qa-find-wrap{margin-bottom:8px;}
+  .qa-find-wrap input{width:100%;background:rgba(118,118,128,.16);border:none;border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;padding:8px 11px;outline:none;transition:box-shadow .2s;}
+  .qa-find-wrap input:focus{box-shadow:0 0 0 1.5px rgba(10,132,255,.6);}
+  .qa-find-wrap input::placeholder{color:var(--text3);}
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
   }
@@ -1336,6 +1345,7 @@
   <div id="qa" role="dialog" aria-label="Быстрая заявка">
     <div class="qa-head"><span class="qa-title">Быстрая заявка</span><span class="qa-kbd" title="Открыть с клавиатуры">N</span>
       <button class="qa-full" onclick="qaFullForm()" title="Открыть полную форму">Полная форма</button><button class="qa-x" onclick="qaClose()" aria-label="Закрыть">×</button></div>
+    <div class="qa-find-wrap" id="qa-find-wrap"><input id="qa-find" autocomplete="off" spellcheck="false" placeholder="Найти трак…" oninput="qaFilter()"/></div>
     <div class="qa-trucks" id="qa-trucks"></div>
     <div class="qa-input"><input id="qa-text" autocomplete="off" spellcheck="false" placeholder="Что нужно? Например: 071 колёса 22.5 ×6 — или просто «колёса»"/>
       <button class="qa-send" onclick="qaSubmit()" title="Добавить (Enter)">↵</button></div>
@@ -4226,17 +4236,26 @@ function qaOpen(truckId){
   let last=null;try{last=Number(localStorage.getItem('qa_last'));}catch(_){}
   const pick=[truckId,_qa.truck,last].find(id=>id&&list.some(t=>t.id===id));
   _qa.truck=pick||list[0].id;_qa.prio='mid';_qa.added=[];
+  const fi=document.getElementById('qa-find');if(fi)fi.value='';
   qaRender();
   const ov=document.getElementById('qa-overlay');ov.classList.add('open');
   const inp=document.getElementById('qa-text');inp.value='';
   setTimeout(()=>inp.focus(),30);
 }
 function qaClose(){document.getElementById('qa-overlay').classList.remove('open');document.activeElement&&document.activeElement.blur&&document.activeElement.blur();}
+function qaOrderedTrucks(){
+  const l=qaTrucks().slice(),ord=state.truckOrder||[];
+  if(ord.length)l.sort((a,b)=>{const ai=ord.indexOf(a.id),bi=ord.indexOf(b.id);return (ai<0?-1:ai)-(bi<0?-1:bi);});
+  return l;
+}
 function qaRender(){
-  document.getElementById('qa-trucks').innerHTML=qaTrucks().map(t=>{
+  const list=qaOrderedTrucks();
+  document.getElementById('qa-find-wrap').style.display=list.length>8?'':'none';
+  document.getElementById('qa-trucks').innerHTML=list.map(t=>{
     const c=getTruckColor(t),act=t.orders.filter(o=>!isOrderClosed(o)).length;
-    return '<button class="qa-truck'+(t.id===_qa.truck?' on':'')+'" style="--tc:'+c+'" onclick="qaPick('+t.id+')"><i></i>'+esc(t.name)+'<span>'+act+'</span></button>';
+    return '<button class="qa-truck'+(t.id===_qa.truck?' on':'')+'" data-name="'+esc(t.name.toLowerCase())+'" style="--tc:'+c+'" onclick="qaPick('+t.id+')"><i></i>'+esc(t.name)+'<span>'+act+'</span></button>';
   }).join('');
+  qaFilter(true);
   document.getElementById('qa-prio').innerHTML=[['low','Низкий'],['mid','Средний'],['high','Срочная']].map(p=>
     '<button class="qa-p qa-p-'+p[0]+(_qa.prio===p[0]?' on':'')+'" onclick="qaPrio(\''+p[0]+'\')">'+p[1]+'</button>').join('');
   document.getElementById('qa-added').innerHTML=_qa.added.map(a=>{
@@ -4245,9 +4264,15 @@ function qaRender(){
       '<button onclick="qaUndo('+a.id+')">отменить</button></div>';
   }).join('');
   _qa.added.forEach(a=>a.fresh=false);
-  const on=document.querySelector('.qa-truck.on');if(on)on.scrollIntoView({block:'nearest',inline:'nearest'});
 }
-function qaPick(id){_qa.truck=id;qaRender();document.getElementById('qa-text').focus();}
+function qaPick(id){_qa.truck=id;const f=document.getElementById('qa-find');if(f)f.value='';qaRender();document.getElementById('qa-text').focus();}
+function qaFilter(keep){
+  const f=document.getElementById('qa-find');const q=(f&&f.value||'').trim().toLowerCase();
+  const chips=[...document.querySelectorAll('#qa-trucks .qa-truck')];
+  chips.forEach(c=>{c.style.display=!q||c.dataset.name.indexOf(q)>=0||c.dataset.name.replace(/\D/g,'')===q.replace(/\D/g,'')&&q.replace(/\D/g,'')?'':'none';});
+  const vis=chips.filter(c=>c.style.display!=='none');
+  document.getElementById('qa-trucks').classList.toggle('none-found',!vis.length);
+}
 function qaPrio(p){_qa.prio=p;qaRender();document.getElementById('qa-text').focus();}
 function qaParse(text){
   let s=text.trim(),prio=null;
@@ -4290,9 +4315,13 @@ function qaFullForm(){
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('qa-overlay').classList.contains('open'))return;
   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();qaClose();return;}
+  if(e.target&&e.target.id==='qa-find'&&e.key==='Enter'){
+    e.preventDefault();const first=[...document.querySelectorAll('#qa-trucks .qa-truck')].find(c=>c.style.display!=='none');
+    if(first)first.click();return;
+  }
   if(e.target&&e.target.id==='qa-text'){
     if(e.key==='Enter'&&!e.isComposing){e.preventDefault();qaSubmit();}
-    else if(e.key==='Tab'){e.preventDefault();const l=qaTrucks();const i=l.findIndex(t=>t.id===_qa.truck);_qa.truck=l[(i+(e.shiftKey?-1:1)+l.length)%l.length].id;qaRender();}
+    else if(e.key==='Tab'){e.preventDefault();const l=qaOrderedTrucks();const i=l.findIndex(t=>t.id===_qa.truck);_qa.truck=l[(i+(e.shiftKey?-1:1)+l.length)%l.length].id;qaRender();}
   }
 },true);
 
