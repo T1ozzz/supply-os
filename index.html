@@ -1300,6 +1300,53 @@
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
   }
+
+  /* ═══ v21 — РАЗДЕЛ СКИДОК ═══ */
+  .disc-card{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));border:.5px solid rgba(255,255,255,.13);border-radius:16px;padding:12px 13px;margin:10px 0;box-shadow:var(--hi);}
+  .disc-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;}
+  .disc-pct-badge{display:inline-block;font-size:12px;font-weight:700;color:var(--green);background:var(--green-dim);border-radius:8px;padding:2px 8px;margin-right:8px;vertical-align:middle;}
+  .disc-order{font-size:13px;font-weight:600;}
+  .disc-order-sub{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4;}
+  .disc-actions{display:flex;gap:5px;flex-shrink:0;}
+  .disc-ibtn{width:28px;height:28px;border-radius:9px;border:none;background:rgba(118,118,128,.22);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;}
+  .disc-ibtn:hover{background:rgba(118,118,128,.36);color:var(--text);}
+  .disc-ibtn.del:hover{background:var(--red-dim);color:var(--red);}
+  .disc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+  .disc-cell{background:rgba(118,118,128,.15);border-radius:11px;padding:8px 9px;min-width:0;}
+  .disc-cell .dc-l{font-size:10px;color:var(--text3);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .disc-cell .dc-v{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .disc-note-box{display:flex;align-items:flex-start;gap:8px;background:rgba(255,214,10,.08);border:.5px solid rgba(255,214,10,.24);border-radius:11px;padding:8px 10px;}
+  .disc-note-box .dn-ic{font-size:13px;line-height:1.5;flex-shrink:0;}
+  .disc-note-input{flex:1;background:transparent;border:none;outline:none;resize:none;color:var(--text);font:13px/1.5 inherit;min-height:20px;overflow:hidden;}
+  .disc-note-input::placeholder{color:var(--text3);}
+  @media(max-width:600px){.disc-grid{grid-template-columns:repeat(2,1fr);}}
+  .disc-card{cursor:pointer;transition:background .15s,border-color .15s,transform .1s;}
+  .disc-card:hover{background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.045));border-color:rgba(255,255,255,.2);}
+  .disc-card:active{transform:scale(.995);}
+  .disc-stat-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;cursor:pointer;margin-left:8px;vertical-align:middle;transition:filter .15s;}
+  .disc-stat-pill:hover{filter:brightness(1.18);}
+  .disc-stat-pill i{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+  /* detail modal */
+  .dd-hero{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;}
+  .dd-pct{font-size:36px;font-weight:800;letter-spacing:-1.5px;color:var(--green);line-height:1;}
+  .dd-hero-sub{font-size:12.5px;color:var(--text3);line-height:1.5;}
+  .dd-seg{display:flex;gap:4px;background:rgba(118,118,128,.2);border-radius:13px;padding:3px;margin-bottom:16px;}
+  .dd-seg button{flex:1;background:none;border:none;color:var(--text2);font:600 12px inherit;padding:10px 4px;border-radius:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .dd-seg button i{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .dd-seg button.on{color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.3);}
+  .dd-bar{height:12px;border-radius:7px;overflow:hidden;display:flex;margin-bottom:5px;}
+  .dd-bar i{display:block;height:100%;}
+  .dd-barcap{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text3);margin-bottom:16px;}
+  .dd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:4px;}
+  .dd-tile{background:rgba(118,118,128,.15);border-radius:13px;padding:11px 13px;min-width:0;}
+  .dd-tile .l{font-size:11px;color:var(--text3);margin-bottom:4px;}
+  .dd-tile .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dd-meta{margin:14px 0 2px;}
+  .dd-meta-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:.5px solid rgba(255,255,255,.08);font-size:13px;}
+  .dd-meta-row:last-child{border-bottom:none;}
+  .dd-meta-row .k{color:var(--text3);flex-shrink:0;}
+  .dd-meta-row .vv{color:var(--text);font-weight:500;text-align:right;min-width:0;word-break:break-word;}
+  .dd-meta-row .vv.link{color:var(--accent2);cursor:pointer;}
 </style>
 </head>
 <body class="on-main">
@@ -1427,9 +1474,10 @@
       <div class="kanban" id="kanban-board"></div>
     </div>
     <div id="tab-discounts" style="display:none">
-      <div class="summary-card">
-        <div><div class="summary-label">Скидок выбито</div><div class="summary-value" id="disc-total">$0</div></div>
-        <div style="text-align:right"><div class="summary-label">Твои 10%</div><div class="summary-value" style="color:var(--green)" id="disc-mine">$0</div></div>
+      <div class="summary-card" style="gap:10px">
+        <div style="min-width:0"><div class="summary-label">Изначальная сумма</div><div class="summary-value" style="font-size:17px" id="disc-original">$0</div></div>
+        <div style="text-align:center;min-width:0"><div class="summary-label">Выбито скидки</div><div class="summary-value" style="font-size:17px;color:var(--green)" id="disc-total">$0</div></div>
+        <div style="text-align:right;min-width:0"><div class="summary-label">Твои 10%</div><div class="summary-value" style="font-size:17px" id="disc-mine">$0</div></div>
       </div>
       <!-- Квартальный фильтр -->
       <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
@@ -1612,7 +1660,7 @@
 <!-- НОВАЯ СКИДКА -->
 <div class="modal-overlay" id="modal-add-discount">
   <div class="modal">
-    <div class="modal-title">Новая скидка</div>
+    <div class="modal-title" id="disc-modal-title">Новая скидка</div>
     <div class="form-group">
       <label class="form-label">Заявка</label>
       <select class="form-input" id="new-disc-order">
@@ -1652,10 +1700,25 @@
       <label class="form-label">Дата</label>
       <input class="form-input" type="date" id="new-disc-date"/>
     </div>
+    <div class="form-group">
+      <label class="form-label">🧾 Заметки / номера счетов</label>
+      <textarea class="form-input" id="new-disc-note" placeholder="Номер счёта, инвойс, договорённость с поставщиком..." style="resize:none;min-height:62px;line-height:1.5"></textarea>
+    </div>
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="hideModal('modal-add-discount')">Отмена</button>
       <button class="btn btn-primary" onclick="addDiscount()">Сохранить</button>
     </div>
+  </div>
+</div>
+
+<!-- ДЕТАЛИ СКИДКИ -->
+<div class="modal-overlay" id="modal-disc-detail">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="modal-title" style="margin:0">Скидка</div>
+      <button class="btn-confirm" onclick="hideModal('modal-disc-detail')">✕</button>
+    </div>
+    <div id="disc-detail-body"></div>
   </div>
 </div>
 
@@ -2689,19 +2752,118 @@ function togglePlan(id){const it=(state.planner||[]).find(x=>x.id===id);if(it){i
 function removePlan(id){state.planner=(state.planner||[]).filter(x=>x.id!==id);renderPlanner();scheduleSave();}
 
 // ══ DISCOUNTS ════════════════════════════════════════════
+let _editDiscId=null;
+let _detailDiscId=null;
+
+// Статус скидки — можно «чекать»: Выбита → Подтверждена → Получена
+const DISC_STATUS=[
+  {key:'pending',  label:'Выбита',       color:'var(--orange)', dim:'var(--orange-dim)'},
+  {key:'confirmed',label:'Подтверждена', color:'var(--accent2)',dim:'var(--accent-dim)'},
+  {key:'received', label:'Получена',     color:'var(--green)',  dim:'var(--green-dim)'}
+];
+function discStatus(d){return DISC_STATUS.find(s=>s.key===((d&&d.status)||'pending'))||DISC_STATUS[0];}
+function cycleDiscStatus(id){
+  const t=getTruck();if(!t)return;
+  const d=t.discounts.find(x=>String(x.id)===String(id));if(!d)return;
+  const i=DISC_STATUS.findIndex(s=>s.key===(d.status||'pending'));
+  d.status=DISC_STATUS[(i+1)%DISC_STATUS.length].key;
+  renderDiscounts(t);
+  if(document.getElementById('modal-disc-detail').classList.contains('open'))renderDiscDetail(id);
+  scheduleSave();
+}
+function setDiscStatus(id,key){
+  const t=getTruck();if(!t)return;
+  const d=t.discounts.find(x=>String(x.id)===String(id));if(!d)return;
+  d.status=key;renderDiscounts(t);renderDiscDetail(id);scheduleSave();
+}
+function openDiscDetail(id){_detailDiscId=id;renderDiscDetail(id);showModal('modal-disc-detail');}
+function renderDiscDetail(id){
+  const t=getTruck();if(!t)return;
+  const d=t.discounts.find(x=>String(x.id)===String(id));
+  const body=document.getElementById('disc-detail-body');if(!body)return;
+  if(!d){hideModal('modal-disc-detail');return;}
+  const did=esc(String(d.id));
+  const orig=parseFloat(d.original)||0,amount=parseFloat(d.amount)||0,pct=parseFloat(d.pct)||0,mine=parseFloat(d.mine)||0,after=orig?orig-amount:0;
+  const order=d.orderId?t.orders.find(o=>o.id===d.orderId):null;
+  const savedPct=orig?Math.max(3,Math.min(100,amount/orig*100)):0;
+  const seg='<div class="dd-seg">'+DISC_STATUS.map(s=>{
+    const on=(d.status||'pending')===s.key;
+    return '<button class="'+(on?'on':'')+'"'+(on?' style="background:'+s.color+'"':'')+' onclick="setDiscStatus(\''+did+'\',\''+s.key+'\')"><i style="background:'+(on?'#fff':s.color)+'"></i>'+s.label+'</button>';
+  }).join('')+'</div>';
+  const bar=orig?'<div class="dd-bar"><i style="width:'+(100-savedPct)+'%;background:rgba(118,118,128,.45)"></i><i style="width:'+savedPct+'%;background:var(--green)"></i></div>'+
+    '<div class="dd-barcap"><span>платишь '+discMoney(after)+'</span><span style="color:var(--green)">экономия '+discMoney(amount)+'</span></div>':'';
+  const tiles='<div class="dd-grid">'+
+    (orig?'<div class="dd-tile"><div class="l">Изначально</div><div class="v">'+discMoney(orig)+'</div></div>':'')+
+    (orig?'<div class="dd-tile"><div class="l">После скидки</div><div class="v">'+discMoney(after)+'</div></div>':'')+
+    '<div class="dd-tile"><div class="l">Выбито скидки</div><div class="v" style="color:var(--green)">'+(amount?discMoney(amount):pct+'%')+'</div></div>'+
+    '<div class="dd-tile"><div class="l">Твои 10%</div><div class="v" style="color:var(--accent2)">'+discMoney(mine)+'</div></div>'+
+  '</div>';
+  const qv=d.quarter||getQuarter(d.date||new Date().toISOString().split('T')[0]);
+  const dateTxt=d.date?new Date(d.date+' 12:00').toLocaleDateString('ru',{day:'numeric',month:'long',year:'numeric'}):'—';
+  const addedTs=(typeof d.id==='number'&&d.id>1e12)?fmtDateTime(d.id):'';
+  const meta='<div class="dd-meta">'+
+    '<div class="dd-meta-row"><span class="k">Заявка</span>'+(order?'<span class="vv link" onclick="hideModal(\'modal-disc-detail\');openOrder('+t.id+','+order.id+')">'+esc(d.orderNum||order.num||'—')+' ↗</span>':'<span class="vv">'+esc(d.orderNum||'—')+'</span>')+'</div>'+
+    '<div class="dd-meta-row"><span class="k">Название</span><span class="vv">'+esc(d.orderName||'—')+'</span></div>'+
+    '<div class="dd-meta-row"><span class="k">Поставщик</span><span class="vv">'+(d.supplier?esc(d.supplier):'—')+'</span></div>'+
+    '<div class="dd-meta-row"><span class="k">Дата скидки</span><span class="vv">'+dateTxt+'</span></div>'+
+    '<div class="dd-meta-row"><span class="k">Квартал</span><span class="vv">'+esc(qv||'—')+'</span></div>'+
+    '<div class="dd-meta-row"><span class="k">Трак</span><span class="vv">'+esc(t.name)+'</span></div>'+
+    (addedTs?'<div class="dd-meta-row"><span class="k">Добавлена</span><span class="vv">'+addedTs+'</span></div>':'')+
+  '</div>';
+  const notes='<div class="section-label" style="margin-top:14px">🧾 Заметки / номера счетов</div>'+
+    '<textarea class="form-input" style="resize:none;min-height:74px;line-height:1.5" placeholder="Номер счёта, инвойс, договорённости с поставщиком..." onchange="updateDiscountNote(\''+did+'\',this.value);renderDiscounts(getTruck())">'+esc(d.note||'')+'</textarea>';
+  const btns='<div class="btn-row">'+
+    (order?'<button class="btn btn-ghost" onclick="hideModal(\'modal-disc-detail\');openOrder('+t.id+','+order.id+')">↗ Заявка</button>':'')+
+    '<button class="btn btn-ghost" onclick="hideModal(\'modal-disc-detail\');editDiscount(\''+did+'\')">✎ Изменить</button>'+
+    '<button class="btn btn-danger" onclick="deleteDiscFromDetail(\''+did+'\')">Удалить</button>'+
+  '</div>';
+  body.innerHTML='<div class="dd-hero"><div class="dd-pct">'+pct+'%</div><div class="dd-hero-sub">'+esc(d.orderNum||'—')+(d.orderName?' · '+esc(d.orderName):'')+'<br>'+(amount?'выбито '+discMoney(amount)+' · твои '+discMoney(mine):'процент скидки')+'</div></div>'+
+    seg+bar+tiles+meta+notes+btns;
+}
+function deleteDiscFromDetail(id){
+  confirmDelete('Удалить скидку?','Это действие нельзя отменить.',()=>{
+    const t=getTruck();if(!t)return;
+    t.discounts=t.discounts.filter(x=>String(x.id)!==String(id));
+    hideModal('modal-disc-detail');renderDiscounts(t);
+  });
+}
 
 // Populate order selector when opening discount modal
 function openDiscountModal(){
   const t=getTruck();if(!t)return;
+  _editDiscId=null;
+  const tt=document.getElementById('disc-modal-title');if(tt)tt.textContent='Новая скидка';
   const sel=document.getElementById('new-disc-order');
   sel.innerHTML='<option value="">— выбери заявку —</option>'+
-    t.orders.map(o=>'<option value="'+o.id+'">'+o.num+' · '+o.name+'</option>').join('');
+    t.orders.map(o=>'<option value="'+o.id+'">'+esc(o.num)+' · '+esc(o.name)+'</option>').join('');
   document.getElementById('new-disc-date').value=new Date().toISOString().split('T')[0];
-  ['new-disc-pct','new-disc-original','new-disc-supplier'].forEach(id=>{
+  ['new-disc-pct','new-disc-original','new-disc-supplier','new-disc-note'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   document.getElementById('disc-preview').style.display='none';
   showModal('modal-add-discount');
+}
+function editDiscount(id){
+  const t=getTruck();if(!t)return;
+  const d=t.discounts.find(x=>String(x.id)===String(id));if(!d)return;
+  _editDiscId=d.id;
+  const tt=document.getElementById('disc-modal-title');if(tt)tt.textContent='Редактировать скидку';
+  const sel=document.getElementById('new-disc-order');
+  sel.innerHTML='<option value="">— выбери заявку —</option>'+
+    t.orders.map(o=>'<option value="'+o.id+'">'+esc(o.num)+' · '+esc(o.name)+'</option>').join('');
+  sel.value=d.orderId||'';
+  document.getElementById('new-disc-original').value=d.original||'';
+  document.getElementById('new-disc-pct').value=d.pct||'';
+  document.getElementById('new-disc-supplier').value=d.supplier||'';
+  document.getElementById('new-disc-date').value=d.date||new Date().toISOString().split('T')[0];
+  const noteEl=document.getElementById('new-disc-note');if(noteEl)noteEl.value=d.note||'';
+  calcDiscount();
+  showModal('modal-add-discount');
+}
+function updateDiscountNote(id,val){
+  const t=getTruck();if(!t)return;
+  const d=t.discounts.find(x=>String(x.id)===String(id));if(!d)return;
+  d.note=val;scheduleSave();
 }
 
 function calcDiscount(){
@@ -2726,22 +2888,33 @@ function addDiscount(){
   const amount=original*(pct/100);
   const mine=amount*0.1;
   const supplier=document.getElementById('new-disc-supplier').value.trim();
+  const note=(document.getElementById('new-disc-note')&&document.getElementById('new-disc-note').value||'').trim();
   const date=document.getElementById('new-disc-date').value||new Date().toISOString().split('T')[0];
   const t=getTruck();if(!t)return;
   const order=orderId?t.orders.find(o=>o.id===orderId):null;
-  t.discounts.push({
-    id:Date.now(),orderId,
-    orderNum:order?order.num:'—',orderName:order?order.name:'—',
-    truckId:t.id,truckName:t.name,
-    original,pct,amount,mine,supplier,date,
-    quarter:getQuarter(date)
-  });
+  if(_editDiscId!=null){
+    const d=t.discounts.find(x=>String(x.id)===String(_editDiscId));
+    if(d)Object.assign(d,{
+      orderId,
+      orderNum:order?order.num:(d.orderNum||'—'),orderName:order?order.name:(d.orderName||'—'),
+      original,pct,amount,mine,supplier,note,date,quarter:getQuarter(date)
+    });
+    _editDiscId=null;
+  }else{
+    t.discounts.push({
+      id:Date.now(),orderId,
+      orderNum:order?order.num:'—',orderName:order?order.name:'—',
+      truckId:t.id,truckName:t.name,
+      original,pct,amount,mine,supplier,note,date,
+      quarter:getQuarter(date)
+    });
+  }
   hideModal('modal-add-discount');
-  ['new-disc-original','new-disc-pct','new-disc-supplier'].forEach(id=>document.getElementById(id).value='');
+  ['new-disc-original','new-disc-pct','new-disc-supplier','new-disc-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('disc-preview').style.display='none';
   renderDiscounts(t);
   scheduleSave();
-  showToast({type:'info',icon:'💰',title:'Скидка '+pct+'% добавлена',sub:'Твои: $'+mine.toFixed(0),duration:4000});
+  showToast({type:'info',icon:'💰',title:'Скидка '+pct+'% сохранена',sub:'Твои: $'+mine.toFixed(0),duration:4000});
 }
 
 function getQuarter(dateStr){
@@ -2751,13 +2924,54 @@ function getQuarter(dateStr){
   return `Q${q} ${d.getFullYear()}`;
 }
 
+function discMoney(v){return '$'+(Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:0});}
+function discountCardHTML(d){
+  const orig=parseFloat(d.original)||0;
+  const amount=parseFloat(d.amount)||0;
+  const pct=parseFloat(d.pct)||0;
+  const mine=parseFloat(d.mine)||0;
+  const after=orig?orig-amount:0;
+  const dateTxt=d.date?new Date(d.date+' 12:00').toLocaleDateString('ru',{day:'numeric',month:'short',year:'numeric'}):'';
+  const sub=[esc(d.orderName||''),d.supplier?esc(d.supplier):'',dateTxt].filter(Boolean).join(' · ');
+  const cells=
+    (orig?'<div class="disc-cell"><div class="dc-l">Изначально</div><div class="dc-v">'+discMoney(orig)+'</div></div>':'')+
+    (orig?'<div class="disc-cell"><div class="dc-l">После скидки</div><div class="dc-v">'+discMoney(after)+'</div></div>':'')+
+    '<div class="disc-cell"><div class="dc-l">Выбито</div><div class="dc-v" style="color:var(--green)">'+(amount?discMoney(amount):pct+'%')+'</div></div>'+
+    '<div class="disc-cell"><div class="dc-l">Твои 10%</div><div class="dc-v" style="color:var(--accent2)">'+discMoney(mine)+'</div></div>';
+  const did=esc(String(d.id));
+  const noteVal=String(d.note||'');
+  const rows=Math.min(6,Math.max(1,noteVal.split('\n').length));
+  const st=discStatus(d);
+  return '<div class="disc-card" data-did="'+did+'" onclick="openDiscDetail(\''+did+'\')">'+
+    '<div class="disc-card-top">'+
+      '<div style="min-width:0"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px 0">'+
+          '<span class="disc-pct-badge">'+pct+'%</span><span class="disc-order">'+esc(d.orderNum||'—')+'</span>'+
+          '<span class="disc-stat-pill" style="color:'+st.color+';background:'+st.dim+'" title="Нажми, чтобы сменить статус" onclick="event.stopPropagation();cycleDiscStatus(\''+did+'\')"><i></i>'+st.label+'</span>'+
+        '</div>'+
+        (sub?'<div class="disc-order-sub">'+sub+'</div>':'')+'</div>'+
+      '<div class="disc-actions">'+
+        '<button class="disc-ibtn" title="Редактировать" onclick="event.stopPropagation();editDiscount(\''+did+'\')">✎</button>'+
+        '<button class="disc-ibtn del" title="Удалить" onclick="event.stopPropagation();removeDiscount(\''+did+'\')">×</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="disc-grid">'+cells+'</div>'+
+    '<div class="disc-note-box" onclick="event.stopPropagation()"><span class="dn-ic">🧾</span>'+
+      '<textarea class="disc-note-input" rows="'+rows+'" placeholder="Заметки, номера счетов, инвойсы..." '+
+        'onclick="event.stopPropagation()" '+
+        'oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'" '+
+        'onchange="updateDiscountNote(\''+did+'\',this.value)">'+esc(noteVal)+'</textarea>'+
+    '</div>'+
+  '</div>';
+}
 function renderDiscounts(t){
+  const totalOrig=t.discounts.reduce((s,d)=>s+(parseFloat(d.original)||0),0);
   const total=t.discounts.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
   const mine=t.discounts.reduce((s,d)=>s+(parseFloat(d.mine)||0),0);
-  const el=document.getElementById('disc-total');if(el)el.textContent='$'+total.toLocaleString(undefined,{maximumFractionDigits:0});
-  const el2=document.getElementById('disc-mine');if(el2)el2.textContent='$'+mine.toLocaleString(undefined,{maximumFractionDigits:0});
+  const elO=document.getElementById('disc-original');if(elO)elO.textContent='$'+totalOrig.toLocaleString('en-US',{maximumFractionDigits:0});
+  const el=document.getElementById('disc-total');if(el)el.textContent='$'+total.toLocaleString('en-US',{maximumFractionDigits:0});
+  const el2=document.getElementById('disc-mine');if(el2)el2.textContent='$'+mine.toLocaleString('en-US',{maximumFractionDigits:0});
   const list=document.getElementById('disc-list');if(!list)return;
-  if(!t.discounts.length){list.innerHTML='<div style="color:var(--text3);font-size:12px;padding:14px 0">Нет скидок</div>';return;}
+  if(!t.discounts.length){list.innerHTML='<div style="color:var(--text3);font-size:12px;padding:14px 0;line-height:1.6">Скидок пока нет.<br>Добавь первую кнопкой ниже — укажи изначальную сумму и процент, система посчитает выбитую скидку и твои 10%.</div>';return;}
   const byQ={};
   t.discounts.forEach(d=>{
     const q=d.quarter||getQuarter(d.date||new Date().toISOString().split('T')[0]);
@@ -2766,23 +2980,13 @@ function renderDiscounts(t){
   });
   list.innerHTML=Object.entries(byQ).sort((a,b)=>b[0].localeCompare(a[0])).map(([q,discs])=>{
     const qMine=discs.reduce((s,d)=>s+(parseFloat(d.mine)||0),0);
-    const discRows=discs.map(d=>{
-      const dAmount=parseFloat(d.amount)||0;
-      const dMine=parseFloat(d.mine)||0;
-      const dPct=parseFloat(d.pct)||0;
-      const amountDiv=dAmount?'<div class="discount-saved">−$'+dAmount.toLocaleString(undefined,{maximumFractionDigits:0})+'</div>':'';
-      const mineDiv=dMine?'<div class="discount-mine">+$'+dMine.toFixed(0)+' твои</div>':dPct?'<div class="discount-mine">'+dPct+'% скидка</div>':'';
-      return '<div class="discount-row">'+
-        '<div style="flex:1"><div class="discount-item">'+dPct+'% · '+(d.orderNum||'—')+'</div><div class="discount-meta">'+(d.orderName||'')+(d.supplier?' · '+d.supplier:'')+'</div></div>'+
-        '<div style="text-align:right;flex-shrink:0">'+amountDiv+mineDiv+'</div>'+
-        '<button class="row-del" onclick="removeDiscount(\''+d.id+'\')" style="opacity:1;margin-left:8px">×</button>'+
-      '</div>';
-    }).join('');
-    return '<div class="disc-q-group" data-q="'+q+'" style="margin-bottom:4px">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 6px;border-bottom:1px solid var(--border2)">'+
-        '<span style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text3)">'+q+'</span>'+
-        '<span style="font-size:11px;color:var(--accent)">твои: $'+qMine.toFixed(0)+'</span>'+
-      '</div>'+discRows+'</div>';
+    const qSaved=discs.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
+    const cards=discs.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(discountCardHTML).join('');
+    return '<div class="disc-q-group" data-q="'+q+'" style="margin-bottom:6px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;border-bottom:1px solid var(--border2)">'+
+        '<span style="font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--text2)">'+q+'</span>'+
+        '<span style="font-size:11px;color:var(--text3)">выбито $'+qSaved.toLocaleString('en-US',{maximumFractionDigits:0})+' · <span style="color:var(--accent2);font-weight:600">твои $'+qMine.toLocaleString('en-US',{maximumFractionDigits:0})+'</span></span>'+
+      '</div>'+cards+'</div>';
   }).join('');
   applyDiscQ();
 }
@@ -2842,7 +3046,7 @@ function renderDiscReport(){
     const rows=qDiscs.map(d=>
       '<tr style="border-top:1px solid var(--border)">'+
         '<td style="padding:9px 14px;color:var(--text2)">'+d.truckName+'</td>'+
-        '<td style="padding:9px 6px"><div style="font-weight:500">'+d.orderNum+'</div><div style="color:var(--text3);font-size:11px">'+d.orderName+'</div></td>'+
+        '<td style="padding:9px 6px"><div style="font-weight:500">'+d.orderNum+'</div><div style="color:var(--text3);font-size:11px">'+d.orderName+(d.original?' · из $'+(parseFloat(d.original)||0).toLocaleString('en-US',{maximumFractionDigits:0}):'')+'</div></td>'+
         '<td style="padding:9px 14px;text-align:right;color:var(--green);font-weight:600">'+d.pct+'%</td>'+
         '<td style="padding:9px 14px;text-align:right;color:var(--text2)">'+(d.amount?'$'+d.amount.toLocaleString(undefined,{maximumFractionDigits:0}):'—')+'</td>'+
         '<td style="padding:9px 14px;text-align:right;color:var(--accent);font-weight:700">'+(d.mine?'$'+d.mine.toFixed(0):'—')+'</td>'+
@@ -5054,8 +5258,7 @@ async function startApp(){
   renderMain();checkUrgency();uiAfterStart();
   migrateFiles().then(()=>cleanupLegacy());
   if(_appStarted)return;_appStarted=true;
-  setTimeout(runNotificationChecks,3000);
-  setInterval(runNotificationChecks,2*60*1000);
+  // Авто-уведомления справа отключены по запросу — больше не всплывают и не спамят.
   setInterval(checkUrgency,60000);
   setInterval(pollFirebase,8000);
   setInterval(()=>{migrateFiles();},5*60*1000);
