@@ -2762,26 +2762,34 @@ const DISC_STATUS=[
   {key:'received', label:'Получена',     color:'var(--green)',  dim:'var(--green-dim)'}
 ];
 function discStatus(d){return DISC_STATUS.find(s=>s.key===((d&&d.status)||'pending'))||DISC_STATUS[0];}
+// Скидка может лежать в любом траке — ищем по id глобально.
+function findDiscountAnywhere(id){
+  for(const t of state.trucks){const d=t.discounts.find(x=>String(x.id)===String(id));if(d)return {t:t,d:d};}
+  return null;
+}
+// Перерисовать все активные экраны, где видны скидки (трак и/или аналитика).
+function refreshDiscViews(id){
+  if(document.getElementById('screen-truck').classList.contains('active')){const t=getTruck();if(t)renderDiscounts(t);}
+  const a=document.getElementById('screen-analytics');
+  if(a&&a.classList.contains('active')&&document.getElementById('atab-discounts').classList.contains('active'))renderDiscountAnalytics();
+  if(id!=null&&document.getElementById('modal-disc-detail').classList.contains('open'))renderDiscDetail(id);
+}
 function cycleDiscStatus(id){
-  const t=getTruck();if(!t)return;
-  const d=t.discounts.find(x=>String(x.id)===String(id));if(!d)return;
-  const i=DISC_STATUS.findIndex(s=>s.key===(d.status||'pending'));
-  d.status=DISC_STATUS[(i+1)%DISC_STATUS.length].key;
-  renderDiscounts(t);
-  if(document.getElementById('modal-disc-detail').classList.contains('open'))renderDiscDetail(id);
-  scheduleSave();
+  const f=findDiscountAnywhere(id);if(!f)return;
+  const i=DISC_STATUS.findIndex(s=>s.key===(f.d.status||'pending'));
+  f.d.status=DISC_STATUS[(i+1)%DISC_STATUS.length].key;
+  refreshDiscViews(id);scheduleSave();
 }
 function setDiscStatus(id,key){
-  const t=getTruck();if(!t)return;
-  const d=t.discounts.find(x=>String(x.id)===String(id));if(!d)return;
-  d.status=key;renderDiscounts(t);renderDiscDetail(id);scheduleSave();
+  const f=findDiscountAnywhere(id);if(!f)return;
+  f.d.status=key;refreshDiscViews(id);scheduleSave();
 }
 function openDiscDetail(id){_detailDiscId=id;renderDiscDetail(id);showModal('modal-disc-detail');}
 function renderDiscDetail(id){
-  const t=getTruck();if(!t)return;
-  const d=t.discounts.find(x=>String(x.id)===String(id));
+  const f=findDiscountAnywhere(id);
   const body=document.getElementById('disc-detail-body');if(!body)return;
-  if(!d){hideModal('modal-disc-detail');return;}
+  if(!f){hideModal('modal-disc-detail');return;}
+  const t=f.t,d=f.d;
   const did=esc(String(d.id));
   const orig=parseFloat(d.original)||0,amount=parseFloat(d.amount)||0,pct=parseFloat(d.pct)||0,mine=parseFloat(d.mine)||0,after=orig?orig-amount:0;
   const order=d.orderId?t.orders.find(o=>o.id===d.orderId):null;
@@ -2811,7 +2819,7 @@ function renderDiscDetail(id){
     (addedTs?'<div class="dd-meta-row"><span class="k">Добавлена</span><span class="vv">'+addedTs+'</span></div>':'')+
   '</div>';
   const notes='<div class="section-label" style="margin-top:14px">🧾 Заметки / номера счетов</div>'+
-    '<textarea class="form-input" style="resize:none;min-height:74px;line-height:1.5" placeholder="Номер счёта, инвойс, договорённости с поставщиком..." onchange="updateDiscountNote(\''+did+'\',this.value);renderDiscounts(getTruck())">'+esc(d.note||'')+'</textarea>';
+    '<textarea class="form-input" style="resize:none;min-height:74px;line-height:1.5" placeholder="Номер счёта, инвойс, договорённости с поставщиком..." onchange="updateDiscountNote(\''+did+'\',this.value);refreshDiscViews()">'+esc(d.note||'')+'</textarea>';
   const btns='<div class="btn-row">'+
     (order?'<button class="btn btn-ghost" onclick="hideModal(\'modal-disc-detail\');openOrder('+t.id+','+order.id+')">↗ Заявка</button>':'')+
     '<button class="btn btn-ghost" onclick="hideModal(\'modal-disc-detail\');editDiscount(\''+did+'\')">✎ Изменить</button>'+
@@ -2822,9 +2830,9 @@ function renderDiscDetail(id){
 }
 function deleteDiscFromDetail(id){
   confirmDelete('Удалить скидку?','Это действие нельзя отменить.',()=>{
-    const t=getTruck();if(!t)return;
-    t.discounts=t.discounts.filter(x=>String(x.id)!==String(id));
-    hideModal('modal-disc-detail');renderDiscounts(t);
+    const f=findDiscountAnywhere(id);if(!f)return;
+    f.t.discounts=f.t.discounts.filter(x=>String(x.id)!==String(id));
+    hideModal('modal-disc-detail');refreshDiscViews();
   });
 }
 
@@ -2844,8 +2852,9 @@ function openDiscountModal(){
   showModal('modal-add-discount');
 }
 function editDiscount(id){
-  const t=getTruck();if(!t)return;
-  const d=t.discounts.find(x=>String(x.id)===String(id));if(!d)return;
+  const f=findDiscountAnywhere(id);if(!f)return;
+  const t=f.t,d=f.d;
+  state.currentTruckId=t.id; // чтобы сохранение изменило правильный трак (в т.ч. из аналитики)
   _editDiscId=d.id;
   const tt=document.getElementById('disc-modal-title');if(tt)tt.textContent='Редактировать скидку';
   const sel=document.getElementById('new-disc-order');
@@ -2861,9 +2870,8 @@ function editDiscount(id){
   showModal('modal-add-discount');
 }
 function updateDiscountNote(id,val){
-  const t=getTruck();if(!t)return;
-  const d=t.discounts.find(x=>String(x.id)===String(id));if(!d)return;
-  d.note=val;scheduleSave();
+  const f=findDiscountAnywhere(id);if(!f)return;
+  f.d.note=val;scheduleSave();
 }
 
 function calcDiscount(){
@@ -2913,6 +2921,8 @@ function addDiscount(){
   ['new-disc-original','new-disc-pct','new-disc-supplier','new-disc-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('disc-preview').style.display='none';
   renderDiscounts(t);
+  const _a=document.getElementById('screen-analytics');
+  if(_a&&_a.classList.contains('active')&&document.getElementById('atab-discounts').classList.contains('active'))renderDiscountAnalytics();
   scheduleSave();
   showToast({type:'info',icon:'💰',title:'Скидка '+pct+'% сохранена',sub:'Твои: $'+mine.toFixed(0),duration:4000});
 }
@@ -2925,14 +2935,14 @@ function getQuarter(dateStr){
 }
 
 function discMoney(v){return '$'+(Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:0});}
-function discountCardHTML(d){
+function discountCardHTML(d,withTruck){
   const orig=parseFloat(d.original)||0;
   const amount=parseFloat(d.amount)||0;
   const pct=parseFloat(d.pct)||0;
   const mine=parseFloat(d.mine)||0;
   const after=orig?orig-amount:0;
   const dateTxt=d.date?new Date(d.date+' 12:00').toLocaleDateString('ru',{day:'numeric',month:'short',year:'numeric'}):'';
-  const sub=[esc(d.orderName||''),d.supplier?esc(d.supplier):'',dateTxt].filter(Boolean).join(' · ');
+  const sub=[(withTruck&&d.truckName)?('🚛 '+esc(d.truckName)):'',esc(d.orderName||''),d.supplier?esc(d.supplier):'',dateTxt].filter(Boolean).join(' · ');
   const cells=
     (orig?'<div class="disc-cell"><div class="dc-l">Изначально</div><div class="dc-v">'+discMoney(orig)+'</div></div>':'')+
     (orig?'<div class="disc-cell"><div class="dc-l">После скидки</div><div class="dc-v">'+discMoney(after)+'</div></div>':'')+
@@ -2981,7 +2991,7 @@ function renderDiscounts(t){
   list.innerHTML=Object.entries(byQ).sort((a,b)=>b[0].localeCompare(a[0])).map(([q,discs])=>{
     const qMine=discs.reduce((s,d)=>s+(parseFloat(d.mine)||0),0);
     const qSaved=discs.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
-    const cards=discs.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(discountCardHTML).join('');
+    const cards=discs.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(d=>discountCardHTML(d)).join('');
     return '<div class="disc-q-group" data-q="'+q+'" style="margin-bottom:6px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;border-bottom:1px solid var(--border2)">'+
         '<span style="font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--text2)">'+q+'</span>'+
@@ -2991,9 +3001,9 @@ function renderDiscounts(t){
   applyDiscQ();
 }
 function removeDiscount(id){
-  const t=getTruck();
-  t.discounts=t.discounts.filter(d=>String(d.id)!==String(id));
-  renderDiscounts(t);scheduleSave();
+  const f=findDiscountAnywhere(id);if(!f)return;
+  f.t.discounts=f.t.discounts.filter(d=>String(d.id)!==String(id));
+  refreshDiscViews();scheduleSave();
 }
 
 // ══ QUARTERLY REPORT ═════════════════════════════════════
@@ -3548,8 +3558,30 @@ function renderDiscountAnalytics(){
       '</div>'+
     '</div>';
 
-  el.innerHTML=summaryCards+supSection+truckSection+qSection;
+  // ── интерактивные карточки скидок (как внутри трака, но по всем тракам) ──
+  const statusCount={pending:0,confirmed:0,received:0};
+  all.forEach(d=>{const k=d.status||'pending';statusCount[k]=(statusCount[k]||0)+1;});
+  const filt=window._discGlobalStatus||'all';
+  const shown=all.filter(d=>filt==='all'||(d.status||'pending')===filt);
+  const byQg={};
+  shown.forEach(d=>{const q=d.quarter||'—';(byQg[q]=byQg[q]||[]).push(d);});
+  const chips='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 12px">'+
+    [['all','Все',all.length],['pending','Выбита',statusCount.pending],['confirmed','Подтв.',statusCount.confirmed],['received','Получена',statusCount.received]]
+      .map(c=>'<button class="disc-q-btn'+(filt===c[0]?' active':'')+'" onclick="setDiscGlobalFilter(\''+c[0]+'\')">'+c[1]+' '+c[2]+'</button>').join('')+'</div>';
+  const cardGroups=Object.entries(byQg).sort((a,b)=>b[0].localeCompare(a[0])).map(([q,ds])=>{
+    const qMine=ds.reduce((s,x)=>s+(parseFloat(x.mine)||0),0);
+    const qSaved=ds.reduce((s,x)=>s+(parseFloat(x.amount)||0),0);
+    const cards=ds.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(x=>discountCardHTML(x,true)).join('');
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;border-bottom:1px solid var(--border2)">'+
+      '<span style="font-size:12px;font-weight:700;color:var(--text2)">'+q+'</span>'+
+      '<span style="font-size:11px;color:var(--text3)">выбито $'+qSaved.toLocaleString('en-US',{maximumFractionDigits:0})+' · <span style="color:var(--accent2);font-weight:600">твои $'+qMine.toLocaleString('en-US',{maximumFractionDigits:0})+'</span></span>'+
+    '</div>'+cards;
+  }).join('')||'<div style="color:var(--text3);font-size:12px;padding:12px 0">Нет скидок с этим статусом.</div>';
+  const allSection='<div class="section-label" style="margin-top:4px">Все скидки · тапни, чтобы открыть</div>'+chips+cardGroups;
+
+  el.innerHTML=summaryCards+allSection+supSection+truckSection+qSection;
 }
+function setDiscGlobalFilter(k){window._discGlobalStatus=k;renderDiscountAnalytics();}
 
 function renderAnalytics(){
   const el=document.getElementById('analytics-content');if(!el)return;
